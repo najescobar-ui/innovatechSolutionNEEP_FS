@@ -1,0 +1,71 @@
+{
+  "realm": "innovatech",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 1800,
+  "roles": {
+    "realm": [
+      { "name": "PM",  "description": "Project Manager" },
+      { "name": "DEV", "description": "Desarrollador" },
+      { "name": "DIR", "description": "Directivo" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "innovatech-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:9000/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:9000", "+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "pm",
+      "email": "pm@innovatech.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Pilar",
+      "lastName": "Manager",
+      "credentials": [
+        { "type": "password", "value": "pm123", "temporary": false }
+      ],
+      "realmRoles": ["PM"]
+    },
+    {
+      "username": "dev",
+      "email": "dev@innovatech.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Diana",
+      "lastName": "Developer",
+      "credentials": [
+        { "type": "password", "value": "dev123", "temporary": false }
+      ],
+      "realmRoles": ["DEV"]
+    },
+    {
+      "username": "dir",
+      "email": "dir@innovatech.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Daniel",
+      "lastName": "Director",
+      "credentials": [
+        { "type": "password", "value": "dir123", "temporary": false }
+      ],
+      "realmRoles": ["DIR"]
+    }
+  ]
+}

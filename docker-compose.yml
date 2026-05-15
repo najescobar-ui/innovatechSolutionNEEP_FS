@@ -20,6 +20,8 @@ volumes:
     name: pgdata-proyectos
   pgdata-recursos:
     name: pgdata-recursos
+  pgdata-keycloak:
+    name: pgdata-keycloak
 
 services:
   # ------------------------------------------------------------------
@@ -34,6 +36,54 @@ services:
     networks: [innovatech-net]
     ports:
       - "8761:8761"
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # Auth: Keycloak con su PostgreSQL dedicado.
+  # Realm pre-cargado desde docker/keycloak/realm-export.json (-import-realm).
+  # ------------------------------------------------------------------
+  db-keycloak:
+    image: postgres:16
+    container_name: db-keycloak
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-keycloak_dev}
+    volumes:
+      - pgdata-keycloak:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USERNAME:-keycloak} -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    networks: [innovatech-net]
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db-keycloak:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloak_dev}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      db-keycloak:
+        condition: service_healthy
     restart: unless-stopped
 
   # ------------------------------------------------------------------

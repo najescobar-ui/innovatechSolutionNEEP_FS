@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: bff
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://keycloak:8080/realms/innovatech/protocol/openid-connect/certs}
 
 eureka:
   client:

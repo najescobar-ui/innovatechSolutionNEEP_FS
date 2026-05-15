@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # JWK directo (no issuer-uri) para evitar mismatch en dev:
+          # el cliente puede pedir el token a localhost:8080 pero el gateway
+          # valida la firma contra el container `keycloak:8080`.
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://keycloak:8080/realms/innovatech/protocol/openid-connect/certs}
   cloud:
     gateway:
       # In Spring Cloud Gateway 5.x the config namespace is split per
@@ -25,9 +33,6 @@ spring:
                 # reaching the BFF, so the BFF doesn't need to know its
                 # public prefix.
                 - StripPrefix=1
-      # TODO[KEYCLOAK]: add a global filter that strips Authorization on
-      #   /actuator/** but keeps it on /api/**, once the resource-server
-      #   starter is wired.
       # TODO[RATE_LIMIT]: enable RequestRateLimiter (10 req/s per internal docs
       #   §5). Default Spring Cloud Gateway impl needs Redis; decide between
       #   adding Redis to the stack or using an in-memory bucket.
