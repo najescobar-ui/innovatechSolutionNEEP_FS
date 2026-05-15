@@ -43,7 +43,7 @@ public class Proyecto {
     @Column(name = "fecha_fin_planificada")
     private LocalDate fechaFinPlanificada;
 
-    // Holds the Keycloak `sub` claim of the responsible PM once auth lands.
+    // TODO: cuando entre Keycloak, llenar con el sub del JWT
     @Column(name = "responsable_id", length = 64)
     private String responsableId;
 }

@@ -38,9 +38,7 @@ public class Recurso {
     @Column(name = "horas_semanales", nullable = false)
     private Integer horasSemanales;
 
-    // CSV of tags (e.g. "java,spring,postgres"). Kept as a single string for
-    // now — a relational `recurso_competencia` table would be the next
-    // refactor when filtering by skill becomes a real requirement.
+    // CSV. Si despues hay que filtrar por skill, lo movemos a tabla aparte.
     @Column(length = 500)
     private String competencias;
 

@@ -14,9 +14,6 @@ public record ProyectoDto(
         LocalDate fechaFinPlanificada,
         String responsableId
 ) {
-    // Static factory used by the service layer; keeps mapping next to the
-    // shape it produces, avoids a separate mapper class while there is
-    // only one entity.
     public static ProyectoDto fromEntity(Proyecto p) {
         return new ProyectoDto(
                 p.getId(),

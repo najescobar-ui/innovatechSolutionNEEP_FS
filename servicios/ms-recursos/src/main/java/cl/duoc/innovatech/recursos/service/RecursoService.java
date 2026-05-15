@@ -12,50 +12,48 @@ import java.util.List;
 @Service
 public class RecursoService {
 
-    private final RecursoRepository repository;
+    private final RecursoRepository repo;
 
-    public RecursoService(RecursoRepository repository) {
-        this.repository = repository;
+    public RecursoService(RecursoRepository repo) {
+        this.repo = repo;
     }
 
     @Transactional(readOnly = true)
     public List<RecursoDto> listar() {
-        return repository.findAll().stream().map(RecursoService::toDto).toList();
+        return repo.findAll().stream().map(this::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public RecursoDto obtener(Long id) {
-        return repository.findById(id)
-                .map(RecursoService::toDto)
+        var r = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recurso no encontrado: " + id));
+        return toDto(r);
     }
 
     @Transactional
-    public RecursoDto crear(CrearRecursoRequest request) {
-        if (repository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email ya registrado: " + request.email());
+    public RecursoDto crear(CrearRecursoRequest req) {
+        if (repo.existsByEmail(req.email())) {
+            throw new IllegalArgumentException("Email ya registrado: " + req.email());
         }
-        var entity = new Recurso(
-                null,
-                request.nombre(),
-                request.email(),
-                request.rol(),
-                request.horasSemanales(),
-                request.competencias(),
-                true
-        );
-        return toDto(repository.save(entity));
+        var r = new Recurso();
+        r.setNombre(req.nombre());
+        r.setEmail(req.email());
+        r.setRol(req.rol());
+        r.setHorasSemanales(req.horasSemanales());
+        r.setCompetencias(req.competencias());
+        r.setActivo(true);
+        return toDto(repo.save(r));
     }
 
-    private static RecursoDto toDto(Recurso entity) {
+    private RecursoDto toDto(Recurso r) {
         return new RecursoDto(
-                entity.getId(),
-                entity.getNombre(),
-                entity.getEmail(),
-                entity.getRol(),
-                entity.getHorasSemanales(),
-                entity.getCompetencias(),
-                entity.getActivo()
+                r.getId(),
+                r.getNombre(),
+                r.getEmail(),
+                r.getRol(),
+                r.getHorasSemanales(),
+                r.getCompetencias(),
+                r.getActivo()
         );
     }
 }

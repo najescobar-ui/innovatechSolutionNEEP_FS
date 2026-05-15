@@ -14,34 +14,30 @@ import java.util.Optional;
 @Transactional
 public class ProyectoService {
 
-    private final ProyectoRepository repository;
+    private final ProyectoRepository repo;
 
-    public ProyectoService(ProyectoRepository repository) {
-        this.repository = repository;
+    public ProyectoService(ProyectoRepository repo) {
+        this.repo = repo;
     }
 
     @Transactional(readOnly = true)
     public List<ProyectoDto> listAll() {
-        return repository.findAll().stream()
-                .map(ProyectoDto::fromEntity)
-                .toList();
+        return repo.findAll().stream().map(ProyectoDto::fromEntity).toList();
     }
 
     @Transactional(readOnly = true)
     public Optional<ProyectoDto> findById(Long id) {
-        return repository.findById(id).map(ProyectoDto::fromEntity);
+        return repo.findById(id).map(ProyectoDto::fromEntity);
     }
 
     public ProyectoDto create(CrearProyectoRequest req) {
-        Proyecto entity = new Proyecto(
-                null,
-                req.nombre(),
-                req.descripcion(),
-                req.estado(),
-                req.fechaInicio(),
-                req.fechaFinPlanificada(),
-                req.responsableId()
-        );
-        return ProyectoDto.fromEntity(repository.save(entity));
+        var p = new Proyecto();
+        p.setNombre(req.nombre());
+        p.setDescripcion(req.descripcion());
+        p.setEstado(req.estado());
+        p.setFechaInicio(req.fechaInicio());
+        p.setFechaFinPlanificada(req.fechaFinPlanificada());
+        p.setResponsableId(req.responsableId());
+        return ProyectoDto.fromEntity(repo.save(p));
     }
 }

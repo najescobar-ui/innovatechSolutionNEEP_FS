@@ -8,25 +8,20 @@ import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
-// Wraps the HTTP call to ms-proyectos. The @LoadBalanced RestClient.Builder
-// resolves the logical Eureka service id (`ms-proyectos`) to an actual
-// instance — no hardcoded container hostnames.
 @Component
 public class ProyectosClient {
 
-    private static final ParameterizedTypeReference<List<ProyectoSummary>> LIST_TYPE =
-            new ParameterizedTypeReference<>() {};
+    private final RestClient http;
 
-    private final RestClient restClient;
-
-    public ProyectosClient(@LoadBalanced RestClient.Builder loadBalancedBuilder) {
-        this.restClient = loadBalancedBuilder.baseUrl("http://ms-proyectos").build();
+    public ProyectosClient(@LoadBalanced RestClient.Builder builder) {
+        // baseUrl con el service id de Eureka, no el hostname Docker
+        this.http = builder.baseUrl("http://ms-proyectos").build();
     }
 
     public List<ProyectoSummary> listar() {
-        return restClient.get()
+        return http.get()
                 .uri("/proyectos")
                 .retrieve()
-                .body(LIST_TYPE);
+                .body(new ParameterizedTypeReference<List<ProyectoSummary>>() {});
     }
 }

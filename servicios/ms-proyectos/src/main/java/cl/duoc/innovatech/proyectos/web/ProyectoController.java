@@ -33,12 +33,12 @@ public class ProyectoController {
     public ResponseEntity<ProyectoDto> getById(@PathVariable Long id) {
         return service.findById(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<ProyectoDto> create(@RequestBody CrearProyectoRequest req) {
-        ProyectoDto created = service.create(req);
+        var created = service.create(req);
         return ResponseEntity
                 .created(URI.create("/proyectos/" + created.id()))
                 .body(created);

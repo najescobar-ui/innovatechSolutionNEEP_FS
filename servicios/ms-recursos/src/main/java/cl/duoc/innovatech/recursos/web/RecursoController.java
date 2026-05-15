@@ -36,7 +36,7 @@ public class RecursoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RecursoDto crear(@RequestBody CrearRecursoRequest request) {
-        return service.crear(request);
+    public RecursoDto crear(@RequestBody CrearRecursoRequest req) {
+        return service.crear(req);
     }
 }

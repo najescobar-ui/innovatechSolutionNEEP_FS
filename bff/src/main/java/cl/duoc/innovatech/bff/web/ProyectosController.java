@@ -8,17 +8,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ProyectosController {
 
-    private final ProyectosService service;
+    private final ProyectosService proyectos;
 
-    public ProyectosController(ProyectosService service) {
-        this.service = service;
+    public ProyectosController(ProyectosService proyectos) {
+        this.proyectos = proyectos;
     }
 
-    // Internal path /proyectos. External URL via gateway: /api/proyectos
-    // (internal docs §5 rule 9: gateway StripPrefix=1 removes /api before
-    // the request reaches the BFF).
     @GetMapping("/proyectos")
     public ProyectosResponse listar() {
-        return service.listar();
+        return proyectos.listar();
     }
 }

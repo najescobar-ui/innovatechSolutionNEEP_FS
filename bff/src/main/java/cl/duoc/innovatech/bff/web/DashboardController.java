@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// URL externa: /api/dashboard. El gateway hace StripPrefix=1.
+// El role viene por query hasta que metamos JWT.
 @RestController
 public class DashboardController {
 
@@ -16,9 +18,6 @@ public class DashboardController {
         this.factory = factory;
     }
 
-    // External path is /api/dashboard (gateway StripPrefix=1 turns it into
-    // /dashboard before reaching this controller). The role param is a
-    // placeholder until JWT-based extraction is wired through Keycloak.
     @GetMapping("/dashboard")
     public DashboardDto dashboard(@RequestParam UserRole role) {
         return factory.create(role);
