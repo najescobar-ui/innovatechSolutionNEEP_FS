@@ -29,8 +29,10 @@ public class BffClientsConfig {
         return RestClient.builder();
     }
 
+    // Tres breakers con la misma config base (window 10, 50%, 3s timeout,
+    // 30s open). Uno por cada microservicio que llama el BFF.
     @Bean
-    public Customizer<Resilience4JCircuitBreakerFactory> proyectosBreaker() {
+    public Customizer<Resilience4JCircuitBreakerFactory> breakersConfig() {
         var cb = CircuitBreakerConfig.custom()
                 .slidingWindowSize(10)
                 .failureRateThreshold(50f)
@@ -40,8 +42,10 @@ public class BffClientsConfig {
         var tl = TimeLimiterConfig.custom()
                 .timeoutDuration(Duration.ofSeconds(3))
                 .build();
-        return factory -> factory.configure(
-                b -> b.circuitBreakerConfig(cb).timeLimiterConfig(tl).build(),
-                "proyectos");
+        return factory -> {
+            for (var name : new String[]{"proyectos", "recursos", "kpis"}) {
+                factory.configure(b -> b.circuitBreakerConfig(cb).timeLimiterConfig(tl).build(), name);
+            }
+        };
     }
 }
