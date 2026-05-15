@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net"><diagram name="Patrón Repository" id="pat-repo">
+<mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0"><root>
+<mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="t" value="&lt;b style='font-size:16px'&gt;Patrón: Repository Pattern&lt;/b&gt;&lt;br&gt;&lt;i&gt;Aplicado en cada microservicio — Spring Data JPA 3.2 / JDK 21 LTS / PostgreSQL 16&lt;/i&gt;" style="text;html=1;align=center;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1"><mxGeometry x="250" y="10" width="900" height="50" as="geometry"/></mxCell>
+
+<!-- Controller -->
+<mxCell id="ctrl" value="&lt;b&gt;REST Controller&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 3.2]&lt;/i&gt;&lt;br&gt;@RestController&lt;br&gt;Expone endpoints HTTP" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=5;" vertex="1" parent="1"><mxGeometry x="100" y="120" width="230" height="110" as="geometry"/></mxCell>
+
+<!-- Service -->
+<mxCell id="svc" value="&lt;b&gt;Service Layer&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Lógica de Negocio]&lt;/i&gt;&lt;br&gt;@Service&lt;br&gt;Reglas de negocio desacopladas de la persistencia" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1"><mxGeometry x="470" y="120" width="280" height="110" as="geometry"/></mxCell>
+
+<!-- Repository Interface -->
+<mxCell id="repo" value="&lt;b&gt;Repository Interface&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Data JPA 3.2]&lt;/i&gt;&lt;br&gt;extends JpaRepository&amp;lt;T, ID&amp;gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Abstracción&lt;/b&gt;: desacopla negocio de BD.&lt;br&gt;Facilita mocks para testing." style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#08427B;strokeColor=#073B6F;arcSize=5;" vertex="1" parent="1"><mxGeometry x="880" y="100" width="300" height="150" as="geometry"/></mxCell>
+
+<!-- JPA Implementation -->
+<mxCell id="jpa" value="&lt;b&gt;JPA Implementation&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Hibernate 6.4 / Auto-generated]&lt;/i&gt;&lt;br&gt;Spring Data genera la implementación&lt;br&gt;en runtime" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;fillColor=#D5E8D4;strokeColor=#82B366;arcSize=5;" vertex="1" parent="1"><mxGeometry x="880" y="320" width="300" height="100" as="geometry"/></mxCell>
+
+<!-- Entity -->
+<mxCell id="ent" value="&lt;b&gt;Entity (JPA)&lt;/b&gt;&lt;br&gt;&lt;i&gt;@Entity / @Table&lt;/i&gt;&lt;br&gt;Ej: Proyecto, Tarea, EstadoTarea,&lt;br&gt;Profesional, Asignación, KPI" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;fillColor=#FFE6CC;strokeColor=#D6A460;arcSize=5;" vertex="1" parent="1"><mxGeometry x="470" y="320" width="280" height="100" as="geometry"/></mxCell>
+
+<!-- Database -->
+<mxCell id="db" value="&lt;b&gt;PostgreSQL 16&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Base de Datos]&lt;/i&gt;&lt;br&gt;Una BD independiente por microservicio" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fontSize=10;fontColor=#FFFFFF;fillColor=#999999;strokeColor=#8A8A8A;" vertex="1" parent="1"><mxGeometry x="880" y="490" width="300" height="110" as="geometry"/></mxCell>
+
+<!-- Mock -->
+<mxCell id="mock" value="&lt;b&gt;Mock Repository&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Testing: JUnit 5 + Mockito]&lt;/i&gt;&lt;br&gt;Implementación fake para&lt;br&gt;pruebas unitarias" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;fillColor=#F8CECC;strokeColor=#B85450;arcSize=5;dashed=1;" vertex="1" parent="1"><mxGeometry x="470" y="490" width="280" height="100" as="geometry"/></mxCell>
+
+<!-- Relaciones -->
+<mxCell id="e1" value="Invoca" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="ctrl" target="svc"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e2" value="Usa interfaz&lt;br&gt;(no implementación)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="svc" target="repo"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e3" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82B366;strokeWidth=1.5;fontColor=#82B366;fontSize=9;dashed=1;" edge="1" parent="1" source="jpa" target="repo"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e4" value="mapea" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=1;fontColor=#D6A460;fontSize=9;dashed=1;" edge="1" parent="1" source="ent" target="jpa"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e5" value="Persiste en" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="jpa" target="db"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e6" value="implements (test)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#B85450;strokeWidth=1;fontColor=#B85450;fontSize=9;dashed=1;" edge="1" parent="1" source="mock" target="repo"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="610" y="460"/><mxPoint x="1030" y="460"/></Array></mxGeometry></mxCell>
+
+<!-- Note -->
+<mxCell id="note" value="&lt;b&gt;Ventaja clave:&lt;/b&gt; El Service Layer depende de la &lt;i&gt;interfaz&lt;/i&gt; Repository,&lt;br&gt;no de la implementación JPA. Esto permite cambiar de BD sin tocar&lt;br&gt;lógica de negocio, y mockear para pruebas unitarias." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fontSize=10;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;spacingLeft=8;spacingTop=5;" vertex="1" parent="1"><mxGeometry x="100" y="520" width="340" height="90" as="geometry"/></mxCell>
+</root></mxGraphModel></diagram></mxfile>

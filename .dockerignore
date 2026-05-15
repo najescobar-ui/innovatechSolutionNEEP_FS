@@ -1,0 +1,39 @@
+# Excluye archivos no relevantes para la build context de Docker.
+# El context se envia entero al daemon; cuanto mas chico, mas rapido.
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Entornos locales y secretos
+.env
+.env.*
+!.env.example
+
+# Editores / IDE
+.vscode/
+.idea/
+*.iml
+*.swp
+
+# Build artifacts (cada modulo regenera su target/)
+**/target/
+**/*.jar
+**/*.war
+
+# Node / frontend (futuro)
+**/node_modules/
+**/.next/
+**/dist/
+
+# Documentacion y diagramas (no afectan el build)
+README.md
+docs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Placeholders
+**/.gitkeep

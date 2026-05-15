@@ -1,0 +1,244 @@
+# Stack local de Innovatech Solutions.
+#
+# Comandos rapidos:
+#   docker compose up -d                  # Levanta todo (build si la imagen no existe)
+#   docker compose up -d --build          # Fuerza rebuild
+#   docker compose ps                     # Estado de los contenedores
+#   docker compose logs -f api-gateway    # Logs en vivo de un servicio
+#   docker compose down                   # Para y elimina contenedores (preserva volumenes)
+#   docker compose down -v                # +elimina volumenes (BORRA datos de las BD)
+#
+# Variables: se leen de ./.env si existe, con defaults dev embebidos.
+
+networks:
+  innovatech-net:
+    name: innovatech-net
+    driver: bridge
+
+volumes:
+  pgdata-proyectos:
+    name: pgdata-proyectos
+  pgdata-recursos:
+    name: pgdata-recursos
+
+services:
+  # ------------------------------------------------------------------
+  # Service Discovery
+  # ------------------------------------------------------------------
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    image: innovatech/eureka-server:dev
+    container_name: eureka-server
+    networks: [innovatech-net]
+    ports:
+      - "8761:8761"
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # BD: una PostgreSQL por microservicio (Database per Service, §5.1)
+  # ------------------------------------------------------------------
+  db-proyectos:
+    image: postgres:16
+    container_name: db-proyectos
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: ${DB_PROYECTOS_NAME:-proyectos}
+      POSTGRES_USER: ${DB_PROYECTOS_USER:-proyectos_user}
+      POSTGRES_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+    volumes:
+      - pgdata-proyectos:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_PROYECTOS_USER:-proyectos_user} -d ${DB_PROYECTOS_NAME:-proyectos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  db-recursos:
+    image: postgres:16
+    container_name: db-recursos
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: ${DB_RECURSOS_NAME:-recursos}
+      POSTGRES_USER: ${DB_RECURSOS_USER:-recursos_user}
+      POSTGRES_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+    volumes:
+      - pgdata-recursos:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_RECURSOS_USER:-recursos_user} -d ${DB_RECURSOS_NAME:-recursos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # Microservicios de negocio
+  # ------------------------------------------------------------------
+  ms-proyectos:
+    build:
+      context: .
+      dockerfile: servicios/ms-proyectos/Dockerfile
+    image: innovatech/ms-proyectos:dev
+    container_name: ms-proyectos
+    networks: [innovatech-net]
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      DB_PROYECTOS_HOST: db-proyectos
+      DB_PROYECTOS_NAME: ${DB_PROYECTOS_NAME:-proyectos}
+      DB_PROYECTOS_USER: ${DB_PROYECTOS_USER:-proyectos_user}
+      DB_PROYECTOS_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+    depends_on:
+      eureka-server:
+        condition: service_started
+      db-proyectos:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ms-recursos:
+    build:
+      context: .
+      dockerfile: servicios/ms-recursos/Dockerfile
+    image: innovatech/ms-recursos:dev
+    container_name: ms-recursos
+    networks: [innovatech-net]
+    ports:
+      - "8082:8082"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      DB_RECURSOS_HOST: db-recursos
+      DB_RECURSOS_NAME: ${DB_RECURSOS_NAME:-recursos}
+      DB_RECURSOS_USER: ${DB_RECURSOS_USER:-recursos_user}
+      DB_RECURSOS_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+    depends_on:
+      eureka-server:
+        condition: service_started
+      db-recursos:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # BFF (orquesta, no persiste)
+  # ------------------------------------------------------------------
+  bff:
+    build:
+      context: .
+      dockerfile: bff/Dockerfile
+    image: innovatech/bff:dev
+    container_name: bff
+    networks: [innovatech-net]
+    ports:
+      - "8084:8084"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # API Gateway (punto unico de entrada)
+  # ------------------------------------------------------------------
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    image: innovatech/api-gateway:dev
+    container_name: api-gateway
+    networks: [innovatech-net]
+    ports:
+      - "9000:9000"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+    restart: unless-stopped
+
+  # ==================================================================
+  # PENDIENTES — descomentar a medida que vayan existiendo los modulos
+  # o se monte su configuracion. Mantenidos aqui para que el shape
+  # del stack final quede visible.
+  # ==================================================================
+
+  # mailhog:
+  #   image: mailhog/mailhog:latest
+  #   container_name: mailhog
+  #   networks: [innovatech-net]
+  #   ports:
+  #     - "1025:1025"   # SMTP
+  #     - "8025:8025"   # Web UI
+  #   restart: unless-stopped
+
+  # keycloak:
+  #   image: quay.io/keycloak/keycloak:24.0
+  #   container_name: keycloak
+  #   networks: [innovatech-net]
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+  #     KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+  #   volumes:
+  #     - ./docker/keycloak:/opt/keycloak/data/import:ro
+  #   command: ["start-dev", "--import-realm"]
+  #   restart: unless-stopped
+
+  # prometheus:
+  #   image: prom/prometheus:v2.51.0
+  #   container_name: prometheus
+  #   networks: [innovatech-net]
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #   restart: unless-stopped
+
+  # grafana:
+  #   image: grafana/grafana:10.4.0
+  #   container_name: grafana
+  #   networks: [innovatech-net]
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+  #     GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+  #   volumes:
+  #     - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  #     - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+  #   depends_on: [prometheus]
+  #   restart: unless-stopped
+
+  # db-recursos:
+  #   image: postgres:16
+  #   container_name: db-recursos
+  #   ...
+
+  # ms-recursos:
+  #   build: { context: ., dockerfile: servicios/ms-recursos/Dockerfile }
+  #   ...
+
+  # db-analitica:
+  #   image: postgres:16
+  #   container_name: db-analitica
+  #   ...
+
+  # ms-analitica:
+  #   build: { context: ., dockerfile: servicios/ms-analitica/Dockerfile }
+  #   ...
+
+  # frontend:
+  #   build: { context: ./frontend }
+  #   container_name: frontend
+  #   ports:
+  #     - "3000:3000"
+  #   ...

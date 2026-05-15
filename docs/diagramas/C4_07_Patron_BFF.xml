@@ -1,0 +1,24 @@
+<mxfile host="app.diagrams.net"><diagram name="Patrón BFF" id="pat-bff">
+<mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="700" math="0" shadow="0"><root>
+<mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="t" value="&lt;b style='font-size:16px'&gt;Patrón: Backend For Frontend (BFF)&lt;/b&gt;&lt;br&gt;&lt;i&gt;Spring Boot 3.2 / JDK 21 LTS / Arquetipo Maven — Desplegado en OKE&lt;/i&gt;" style="text;html=1;align=center;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1"><mxGeometry x="250" y="10" width="900" height="50" as="geometry"/></mxCell>
+
+<mxCell id="fe" value="&lt;b&gt;Frontend SPA&lt;/b&gt;&lt;br&gt;&lt;i&gt;React 18.3&lt;/i&gt;&lt;br&gt;1 llamada" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=5;" vertex="1" parent="1"><mxGeometry x="100" y="230" width="160" height="90" as="geometry"/></mxCell>
+
+<mxCell id="bff" value="&lt;b&gt;BFF&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 3.2 / JDK 21 LTS]&lt;/i&gt;&lt;br&gt;&lt;br&gt;1. Recibe 1 petición del frontend&lt;br&gt;2. Hace N llamadas internas (con Circuit Breaker)&lt;br&gt;3. Agrega datos con Factory Method&lt;br&gt;4. Retorna 1 respuesta optimizada" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1"><mxGeometry x="380" y="160" width="380" height="180" as="geometry"/></mxCell>
+
+<mxCell id="ms1" value="&lt;b&gt;MS Proyectos&lt;/b&gt;&lt;br&gt;&lt;i&gt;Spring Boot 3.2&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;fillColor=#08427B;strokeColor=#073B6F;arcSize=5;" vertex="1" parent="1"><mxGeometry x="900" y="100" width="180" height="60" as="geometry"/></mxCell>
+<mxCell id="ms2" value="&lt;b&gt;MS Recursos&lt;/b&gt;&lt;br&gt;&lt;i&gt;Spring Boot 3.2&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;fillColor=#08427B;strokeColor=#073B6F;arcSize=5;" vertex="1" parent="1"><mxGeometry x="900" y="200" width="180" height="60" as="geometry"/></mxCell>
+<mxCell id="ms3" value="&lt;b&gt;MS Analítica&lt;/b&gt;&lt;br&gt;&lt;i&gt;Spring Boot 3.2&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;fillColor=#08427B;strokeColor=#073B6F;arcSize=5;" vertex="1" parent="1"><mxGeometry x="900" y="300" width="180" height="60" as="geometry"/></mxCell>
+
+<mxCell id="resp" value="&lt;b&gt;1 Respuesta Agregada&lt;/b&gt;&lt;br&gt;&lt;i&gt;Optimizada para el frontend&lt;/i&gt;&lt;br&gt;Datos de 3 MS en 1 JSON" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;fillColor=#D5E8D4;strokeColor=#82B366;arcSize=5;" vertex="1" parent="1"><mxGeometry x="380" y="430" width="380" height="70" as="geometry"/></mxCell>
+
+<!-- Sin BFF -->
+<mxCell id="sinbff" value="&lt;b&gt;Sin BFF:&lt;/b&gt; Frontend haría 3+ llamadas separadas&lt;br&gt;&lt;b&gt;Con BFF:&lt;/b&gt; Frontend hace 1 llamada, BFF orquesta internamente" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fontSize=10;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;spacingLeft=8;spacingTop=5;" vertex="1" parent="1"><mxGeometry x="100" y="430" width="250" height="70" as="geometry"/></mxCell>
+
+<mxCell id="e1" value="1 request" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10B981;strokeWidth=2;fontColor=#10B981;fontSize=10;" edge="1" parent="1" source="fe" target="bff"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e2" value="REST+CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=1.5;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="bff" target="ms1"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e3" value="REST+CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=1.5;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="bff" target="ms2"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e4" value="REST+CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=1.5;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="bff" target="ms3"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e5" value="1 response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10B981;strokeWidth=2;fontColor=#10B981;fontSize=10;" edge="1" parent="1" source="bff" target="resp"><mxGeometry relative="1" as="geometry"/></mxCell>
+</root></mxGraphModel></diagram></mxfile>

@@ -1,0 +1,109 @@
+<mxfile host="app.diagrams.net" modified="2026-04-13" agent="user" type="device">
+  <diagram name="C4 - Container (v3)" id="c4-cont-v3">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b style='font-size:16px'&gt;C4 Container — Plataforma Innovatech Solutions&lt;/b&gt;&lt;br&gt;&lt;i&gt;Desplegado en Oracle Kubernetes Engine (OKE) • Monitoreo con Prometheus 2.51 + Grafana 10.4&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="1200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- PERSONAS (fuera de OKE) -->
+        <mxCell id="p1" value="&lt;b&gt;Gestor de Proyecto&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
+          <mxGeometry x="80" y="80" width="150" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="&lt;b&gt;Desarrollador&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
+          <mxGeometry x="900" y="80" width="150" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="&lt;b&gt;Director&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="80" width="150" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- OKE BOUNDARY -->
+        <mxCell id="oke" value="&lt;b&gt;Oracle Kubernetes Engine (OKE)&lt;/b&gt; — &lt;i&gt;Kubernetes 1.29 • Oracle Cloud Infrastructure&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontColor=#1168BD;align=left;verticalAlign=top;fillColor=none;strokeColor=#1168BD;strokeWidth=2;dashed=1;dashPattern=8 4;arcSize=3;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="120" y="270" width="1720" height="1440" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 1: INGRESS CONTROLLER -->
+        <mxCell id="ingress" value="&lt;b&gt;Ingress Controller (Nginx)&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Punto de entrada público — expuesto vía LoadBalancer]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Ruta / → Frontend SPA  |  Ruta /api/* → API Gateway" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#C27E2A;strokeColor=#A66A1E;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="480" y="320" width="700" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 2: FRONTEND + API GATEWAY -->
+        <mxCell id="fe" value="&lt;b&gt;Frontend SPA&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Contenedor: React 18.3 + Vite 5.x / Nginx]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Deployment en OKE&lt;/i&gt;&lt;br&gt;&lt;br&gt;Interfaz responsiva (WCAG 2.1). Módulos NPM reutilizables." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="160" y="490" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="gw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Contenedor: Spring Cloud Gateway 4.1 / JDK 21 LTS]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Deployment en OKE&lt;/i&gt;&lt;br&gt;&lt;br&gt;Routing, rate limiting, autenticación JWT, balanceo de carga." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="600" y="490" width="500" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" value="&lt;b&gt;Keycloak 24.x&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema Externo - IdP]&lt;/i&gt;&lt;br&gt;OAuth2 / JWT" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="500" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="sd" value="&lt;b&gt;Service Discovery&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Contenedor: Eureka 4.1 / JDK 21 LTS]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Deployment en OKE&lt;/i&gt;&lt;br&gt;&lt;br&gt;Registro y descubrimiento dinámico." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;align=center;fillColor=#D5E8D4;strokeColor=#82B366;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="490" width="300" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 3: BFF -->
+        <mxCell id="bff" value="&lt;b&gt;Backend For Frontend (BFF)&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Contenedor: Spring Boot 3.2.x / JDK 21 LTS / Arquetipo Maven]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Deployment en OKE&lt;/i&gt;&lt;br&gt;&lt;br&gt;Orquesta llamadas a microservicios. Implementa &lt;b&gt;Factory Method&lt;/b&gt; para DTOs por rol.&lt;br&gt;Todas las llamadas protegidas con &lt;b&gt;Circuit Breaker (Resilience4j 2.2)&lt;/b&gt;." style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="700" width="700" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="cb" value="&lt;b&gt;Circuit Breaker&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Patrón: Resilience4j 2.2.x]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Closed → Open → Half-Open.&lt;br&gt;Fallback con datos cacheados." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;align=center;fillColor=#FFE6CC;strokeColor=#D6A460;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="710" width="300" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 4: MICROSERVICIOS (Deployments) -->
+        <mxCell id="ms1" value="&lt;b&gt;MS: Gestión de Proyectos&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 3.2 / JDK 21 LTS]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Arquetipo Maven — Deployment&lt;/i&gt;&lt;br&gt;&lt;br&gt;CRUD proyectos, tareas, estados.&lt;br&gt;&lt;b&gt;Repository Pattern&lt;/b&gt; (JPA 3.2). API REST." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="160" y="930" width="340" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ms2" value="&lt;b&gt;MS: Gestión de Recursos&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 3.2 / JDK 21 LTS]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Arquetipo Maven — Deployment&lt;/i&gt;&lt;br&gt;&lt;br&gt;Capacity, asignaciones, colaboración.&lt;br&gt;&lt;b&gt;Repository Pattern&lt;/b&gt; (JPA 3.2). API REST." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="560" y="930" width="340" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ms3" value="&lt;b&gt;MS: Monitoreo y Analítica&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 3.2 / JDK 21 LTS]&lt;/i&gt;&lt;br&gt;&lt;i&gt;Arquetipo Maven — Deployment&lt;/i&gt;&lt;br&gt;&lt;br&gt;KPIs, dashboards, métricas históricas.&lt;br&gt;&lt;b&gt;Repository Pattern&lt;/b&gt; (JPA 3.2). Consume MS1/MS2." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="960" y="930" width="340" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="prom" value="&lt;b&gt;Prometheus 2.51 + Grafana 10.4&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Monitoreo del Cluster — Deployment]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Scrape /actuator/prometheus.&lt;br&gt;CPU, RAM, latencia, errores.&lt;br&gt;Alertas vía AlertManager." style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;align=center;fillColor=#E6D0F5;strokeColor=#9673A6;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="930" width="350" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- NIVEL 5: BDs (StatefulSets) -->
+        <mxCell id="db1" value="&lt;b&gt;DB Proyectos&lt;/b&gt;&lt;br&gt;&lt;i&gt;[PostgreSQL 16]&lt;/i&gt;&lt;br&gt;&lt;b&gt;StatefulSet&lt;/b&gt; + PersistentVolume" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;" vertex="1" parent="1">
+          <mxGeometry x="230" y="1200" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="db2" value="&lt;b&gt;DB Recursos&lt;/b&gt;&lt;br&gt;&lt;i&gt;[PostgreSQL 16]&lt;/i&gt;&lt;br&gt;&lt;b&gt;StatefulSet&lt;/b&gt; + PersistentVolume" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;" vertex="1" parent="1">
+          <mxGeometry x="630" y="1200" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="db3" value="&lt;b&gt;DB Analítica&lt;/b&gt;&lt;br&gt;&lt;i&gt;[PostgreSQL 16]&lt;/i&gt;&lt;br&gt;&lt;b&gt;StatefulSet&lt;/b&gt; + PersistentVolume" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="1200" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="notif" value="&lt;b&gt;Notificaciones&lt;/b&gt;&lt;br&gt;&lt;i&gt;[JavaMailSender + Gmail SMTP]&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="1220" width="250" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- LEYENDA K8s -->
+        <mxCell id="legend" value="&lt;b&gt;Tipos de recurso Kubernetes:&lt;/b&gt;&lt;br&gt;• Frontend, Gateway, BFF, Microservicios, Prometheus, Eureka → &lt;b&gt;Deployment&lt;/b&gt; (sin estado, escalables con HPA)&lt;br&gt;• PostgreSQL → &lt;b&gt;StatefulSet&lt;/b&gt; (estado persistente, identidad fija, PersistentVolume)&lt;br&gt;• Ingress Controller → &lt;b&gt;Ingress + LoadBalancer Service&lt;/b&gt; (único punto expuesto externamente)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fontSize=10;fontColor=#333333;align=left;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingLeft=8;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1410" width="620" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- RELACIONES -->
+        <mxCell id="r1" value="[HTTPS]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="p1" target="ingress"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2" value="[HTTPS]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="p2" target="ingress"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3" value="[HTTPS]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="p3" target="ingress"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4a" value="Ruta / [HTTP]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#C27E2A;strokeWidth=1.5;fontColor=#C27E2A;fontSize=9;" edge="1" parent="1" source="ingress" target="fe"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4b" value="Ruta /api/* [HTTP]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#C27E2A;strokeWidth=1.5;fontColor=#C27E2A;fontSize=9;" edge="1" parent="1" source="ingress" target="gw"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r6" value="Valida JWT" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="gw" target="auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5" value="Enruta [HTTP interno]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="gw" target="bff"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r7" value="REST + CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="bff" target="ms1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r8" value="REST + CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="bff" target="ms2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r9" value="REST + CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="bff" target="ms3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r10" value="JPA [Repository]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="ms1" target="db1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r11" value="JPA [Repository]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="ms2" target="db2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r12" value="JPA [Repository]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="ms3" target="db3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r13" value="Scrape /actuator/prometheus" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673A6;strokeWidth=1.5;fontColor=#9673A6;fontSize=9;dashed=1;" edge="1" parent="1" source="prom" target="ms3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r14" value="Scrape" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673A6;strokeWidth=1;fontColor=#9673A6;fontSize=9;dashed=1;" edge="1" parent="1" source="prom" target="ms1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1360" y="980" /><mxPoint x="1360" y="1140" /><mxPoint x="330" y="1140" /></Array></mxGeometry></mxCell>
+        <mxCell id="r15" value="Scrape" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673A6;strokeWidth=1;fontColor=#9673A6;fontSize=9;dashed=1;" edge="1" parent="1" source="prom" target="ms2"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1360" y="1000" /><mxPoint x="1360" y="1140" /><mxPoint x="730" y="1140" /></Array></mxGeometry></mxCell>
+        <mxCell id="r16" value="Notifica [JavaMailSender]" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="ms2" target="notif"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r17" value="Registra servicios" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82B366;strokeWidth=1;fontColor=#82B366;fontSize=9;dashed=1;" edge="1" parent="1" source="sd" target="bff"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
