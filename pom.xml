@@ -35,11 +35,7 @@
         <module>bff</module>
         <module>servicios/ms-proyectos</module>
         <module>servicios/ms-recursos</module>
-        <!--
-             Re-agregar a medida que cada módulo se vaya creando.
-             Maven valida que todo <module> exista al parsear el padre.
-            <module>servicios/ms-analitica</module>
-        -->
+        <module>servicios/ms-analitica</module>
     </modules>
 
     <properties>

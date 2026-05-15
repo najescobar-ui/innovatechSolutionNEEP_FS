@@ -126,6 +126,22 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  ms-analitica:
+    build:
+      context: .
+      dockerfile: servicios/ms-analitica/Dockerfile
+    image: innovatech/ms-analitica:dev
+    container_name: ms-analitica
+    networks: [innovatech-net]
+    ports:
+      - "8083:8083"
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+    restart: unless-stopped
+
   # ------------------------------------------------------------------
   # BFF (orquesta, no persiste)
   # ------------------------------------------------------------------
