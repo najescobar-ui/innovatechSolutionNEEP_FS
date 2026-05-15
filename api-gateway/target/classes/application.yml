@@ -1,0 +1,67 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # JWK directo (no issuer-uri) para evitar mismatch en dev:
+          # el cliente puede pedir el token a localhost:8080 pero el gateway
+          # valida la firma contra el container `keycloak:8080`.
+          jwk-set-uri: ${KEYCLOAK_JWK_URI:http://keycloak:8080/realms/innovatech/protocol/openid-connect/certs}
+  cloud:
+    gateway:
+      # In Spring Cloud Gateway 5.x the config namespace is split per
+      # variant (server-webflux vs server-webmvc). The old
+      # `spring.cloud.gateway.routes` is silently ignored.
+      server:
+        webflux:
+          discovery:
+            locator:
+              # Prefer explicit routes below over auto-locator from service-ids
+              enabled: false
+          routes:
+            - id: bff-route
+              uri: lb://bff
+              predicates:
+                - Path=/api/**
+              filters:
+                # External `/api/dashboard` becomes `/dashboard` before
+                # reaching the BFF, so the BFF doesn't need to know its
+                # public prefix.
+                - StripPrefix=1
+      # TODO[RATE_LIMIT]: enable RequestRateLimiter (10 req/s per internal docs
+      #   §5). Default Spring Cloud Gateway impl needs Redis; decide between
+      #   adding Redis to the stack or using an in-memory bucket.
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://eureka-server:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    # Inside docker-net hostnames work, but ip-address is more reliable
+    # when containers get recreated.
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
