@@ -89,7 +89,7 @@ graph TB
     subgraph "Microservicios"
         MS1[ms-proyectos<br/>:8081]
         MS2[ms-recursos<br/>:8082]
-        MS3[ms-analitica<br/>:8083<br/>@Scheduled snapshots]
+        MS3[ms-analitica<br/>:8083<br/>Scheduled snapshots]
     end
 
     subgraph "Persistencia"
@@ -227,14 +227,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CR as @Scheduled<br/>(cron 0 */5 * * * *)
+    participant CR as Scheduler<br/>(cron 0 */5 * * * *)
     participant S as KpiSnapshotService
     participant K as KpiService
     participant P as ms-proyectos
     participant R as ms-recursos
     participant DBA as db-analitica
 
-    Note over S: @PostConstruct: si la tabla está vacía,<br/>backfill 12 puntos semanales sintéticos (jitter ±15%)<br/>para tener sparkline desde día 1
+    Note over S: PostConstruct: si la tabla esta vacia,<br/>backfill 12 puntos semanales sinteticos (jitter +/- 15 por ciento)<br/>para tener sparkline desde dia 1
     CR->>S: capturar()
     S->>K: calcular()
     K->>P: GET /proyectos

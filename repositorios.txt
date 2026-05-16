@@ -1,0 +1,159 @@
+===========================================================================
+ InnovaTech Solutions — Enlaces a los repositorios de los componentes
+ Evaluación Parcial N°2 — DSY1106 Desarrollo Fullstack III
+===========================================================================
+
+ENFOQUE: MONO-REPO
+------------------
+Todos los componentes (frontend, BFF, microservicios y arquetipo Maven)
+viven en un único repositorio multi-módulo. Esta decisión se tomó para:
+  - Mantener un único `pom.xml` padre que centraliza versiones del stack.
+  - Garantizar atomicidad en cambios cross-componente (ej. agregar un
+    endpoint nuevo toca BFF + microservicio en el mismo commit).
+  - Simplificar el `docker compose up` para presentación: un solo `git clone`
+    y un solo comando levanta toda la infraestructura.
+
+Las rutas indicadas debajo apuntan a las subcarpetas dentro del mismo repo
+en la rama `main`.
+
+
+===========================================================================
+ REPOSITORIO PRINCIPAL
+===========================================================================
+
+URL HTTPS:  https://github.com/najescobar-ui/innovatechSolutionNEEP_FS
+URL SSH:    git@github.com:najescobar-ui/innovatechSolutionNEEP_FS.git
+Rama main:  https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main
+Rama dev:   https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/dev
+
+Descripción:
+  Plataforma de gestión de proyectos para InnovaTech Solutions. Arquitectura
+  de microservicios con autenticación centralizada (Keycloak), service
+  discovery (Eureka), API Gateway, BFF y observabilidad. Frontend React
+  dockerizado. Stack: Java 25 + Spring Boot 4.0 + Spring Cloud 2025.1 +
+  PostgreSQL 16 + React 18.3 + Vite + Nginx.
+
+
+===========================================================================
+ COMPONENTES INDIVIDUALES (rutas dentro del mono-repo)
+===========================================================================
+
+------------------------------------------------------------
+ 1. FRONTEND  (Componente NPM)
+------------------------------------------------------------
+Ruta:       /frontend/
+Enlace:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/frontend
+README:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/frontend/README.md
+
+Descripción:
+  Aplicación React 18.3 + Vite + TypeScript empaquetada con el estándar
+  NPM. Tema dark inspirado en Linear/Vercel/Supabase. Se autentica contra
+  Keycloak por OAuth2 (PKCE) y consume el backend a través del API Gateway.
+  Incluye Dockerfile multi-stage (Node build → Nginx Alpine).
+
+  Vistas implementadas:
+    - Login Keycloak (PKCE)
+    - Dashboard adaptado por rol (PM / DEV / DIR) con KPIs reales,
+      filtro de fechas (rango ≤ 30 días) y gráfico de evolución.
+    - Proyectos: tabla densa con CRUD parcial + selección múltiple.
+    - Recursos: tabla densa con CRUD parcial + selección múltiple.
+
+------------------------------------------------------------
+ 2. BFF  (Backend For Frontend)
+------------------------------------------------------------
+Ruta:       /bff/
+Enlace:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/bff
+README:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/bff/README.md
+
+Descripción:
+  Componente Spring Boot que orquesta las llamadas a los microservicios,
+  aplica circuit breakers por endpoint (Resilience4j) y construye DTOs
+  adaptados al rol del usuario mediante Factory Method. No tiene base
+  de datos propia: solo agrega y adapta.
+
+  Patrones aplicados: BFF, Factory Method, Circuit Breaker,
+  Service Discovery.
+
+------------------------------------------------------------
+ 3. MICROSERVICIO — ms-proyectos
+------------------------------------------------------------
+Ruta:       /servicios/ms-proyectos/
+Enlace:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/servicios/ms-proyectos
+README:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/servicios/ms-proyectos/README.md
+
+Descripción:
+  Ciclo de vida de los proyectos: GET / POST / PATCH / DELETE.
+  PostgreSQL propia (db-proyectos). Migraciones Flyway versionadas.
+
+  Patrones: Repository, Database per Service.
+
+------------------------------------------------------------
+ 4. MICROSERVICIO — ms-recursos
+------------------------------------------------------------
+Ruta:       /servicios/ms-recursos/
+Enlace:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/servicios/ms-recursos
+README:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/servicios/ms-recursos/README.md
+
+Descripción:
+  Gestión del talento: profesionales, roles funcionales (DEV/QA/DEVOPS/
+  DESIGNER/PM), capacidad semanal en horas y estado activo. CRUD parcial.
+  PostgreSQL propia (db-recursos). Email único en altas.
+
+  Patrones: Repository, Database per Service.
+
+------------------------------------------------------------
+ 5. MICROSERVICIO — ms-analitica
+------------------------------------------------------------
+Ruta:       /servicios/ms-analitica/
+Enlace:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/servicios/ms-analitica
+README:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/servicios/ms-analitica/README.md
+
+Descripción:
+  Agregador de KPIs cross-organización. Consume ms-proyectos y ms-recursos
+  vía REST (Eureka) y persiste snapshots históricos en su BD propia
+  (db-analitica) para series temporales: sparklines, deltas y filtro de
+  rango de fechas (≤ 30 días). Scheduler Spring que captura snapshots
+  cada N minutos.
+
+  Patrones: Repository, Database per Service, Snapshot/Periodic
+  Aggregation, Circuit Breaker, Service Discovery.
+
+------------------------------------------------------------
+ 6. ARQUETIPO MAVEN  (POM padre multi-módulo)
+------------------------------------------------------------
+Ruta:       /pom.xml  (raíz del repo)
+Enlace:     https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/pom.xml
+Guía:       https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/ARQUETIPOS.md
+
+Descripción:
+  POM padre `innovatech-parent` que cumple la función de arquetipo Maven
+  para todos los componentes backend del proyecto. Centraliza versiones
+  del stack (Java 25, Spring Boot 4.0, Spring Cloud 2025.1, Resilience4j
+  2.2, Lombok 1.18.44, MapStruct 1.6.3) y configura plugins de build con
+  annotation processors. Cualquier microservicio nuevo solo declara
+  `<parent>` y obtiene todo el stack heredado.
+
+  La guía ARQUETIPOS.md documenta paso a paso cómo crear un nuevo
+  microservicio usando este POM padre como base.
+
+
+===========================================================================
+ COMPONENTES DE INFRAESTRUCTURA  (incluidos en el mono-repo)
+===========================================================================
+
+eureka-server  — Service registry (puerto 8761).
+api-gateway    — Spring Cloud Gateway con validación JWT y StripPrefix.
+
+Ruta:       /eureka-server/ y /api-gateway/
+Enlaces:    https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/eureka-server
+            https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/tree/main/api-gateway
+
+
+===========================================================================
+ DOCUMENTACIÓN ADICIONAL
+===========================================================================
+
+README principal:        /README.md
+Guía de arquetipos:      /ARQUETIPOS.md
+Plantilla .env:          /.env.example
+Orquestación Docker:     /docker-compose.yml
