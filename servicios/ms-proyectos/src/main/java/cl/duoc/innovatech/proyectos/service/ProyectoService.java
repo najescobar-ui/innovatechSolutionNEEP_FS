@@ -1,5 +1,6 @@
 package cl.duoc.innovatech.proyectos.service;
 
+import cl.duoc.innovatech.proyectos.dto.ActualizarProyectoRequest;
 import cl.duoc.innovatech.proyectos.dto.CrearProyectoRequest;
 import cl.duoc.innovatech.proyectos.dto.ProyectoDto;
 import cl.duoc.innovatech.proyectos.entity.Proyecto;
@@ -39,5 +40,22 @@ public class ProyectoService {
         p.setFechaFinPlanificada(req.fechaFinPlanificada());
         p.setResponsableId(req.responsableId());
         return ProyectoDto.fromEntity(repo.save(p));
+    }
+
+    public boolean delete(Long id) {
+        if (!repo.existsById(id)) return false;
+        repo.deleteById(id);
+        return true;
+    }
+
+    public Optional<ProyectoDto> patch(Long id, ActualizarProyectoRequest req) {
+        return repo.findById(id).map(p -> {
+            if (req.estado() != null) p.setEstado(req.estado());
+            // responsableId puede llegar vacio para "limpiar"; solo lo ignoro si es null
+            if (req.responsableId() != null) {
+                p.setResponsableId(req.responsableId().isBlank() ? null : req.responsableId());
+            }
+            return ProyectoDto.fromEntity(repo.save(p));
+        });
     }
 }

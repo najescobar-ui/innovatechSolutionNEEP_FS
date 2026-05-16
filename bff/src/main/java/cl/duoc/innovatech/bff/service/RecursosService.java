@@ -1,5 +1,8 @@
 package cl.duoc.innovatech.bff.service;
 
+import cl.duoc.innovatech.bff.domain.ActualizarRecursoRequest;
+import cl.duoc.innovatech.bff.domain.CrearRecursoRequest;
+import cl.duoc.innovatech.bff.domain.RecursoSummary;
 import cl.duoc.innovatech.bff.domain.RecursosResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,5 +29,17 @@ public class RecursosService {
                     log.warn("ms-recursos cayo, devolviendo fallback ({})", ex.getMessage());
                     return RecursosResponse.unavailable();
                 });
+    }
+
+    public RecursoSummary crear(CrearRecursoRequest req) {
+        return client.crear(req);
+    }
+
+    public void eliminar(Long id) {
+        client.eliminar(id);
+    }
+
+    public RecursoSummary actualizar(Long id, ActualizarRecursoRequest req) {
+        return client.actualizar(id, req);
     }
 }

@@ -1,5 +1,6 @@
 package cl.duoc.innovatech.recursos.service;
 
+import cl.duoc.innovatech.recursos.dto.ActualizarRecursoRequest;
 import cl.duoc.innovatech.recursos.dto.CrearRecursoRequest;
 import cl.duoc.innovatech.recursos.dto.RecursoDto;
 import cl.duoc.innovatech.recursos.entity.Recurso;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RecursoService {
@@ -28,6 +30,21 @@ public class RecursoService {
         var r = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recurso no encontrado: " + id));
         return toDto(r);
+    }
+
+    @Transactional
+    public boolean eliminar(Long id) {
+        if (!repo.existsById(id)) return false;
+        repo.deleteById(id);
+        return true;
+    }
+
+    @Transactional
+    public Optional<RecursoDto> actualizar(Long id, ActualizarRecursoRequest req) {
+        return repo.findById(id).map(r -> {
+            if (req.activo() != null) r.setActivo(req.activo());
+            return toDto(repo.save(r));
+        });
     }
 
     @Transactional

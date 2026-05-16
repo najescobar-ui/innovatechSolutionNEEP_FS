@@ -1,5 +1,7 @@
 package cl.duoc.innovatech.bff.service;
 
+import cl.duoc.innovatech.bff.domain.ActualizarRecursoRequest;
+import cl.duoc.innovatech.bff.domain.CrearRecursoRequest;
 import cl.duoc.innovatech.bff.domain.RecursoSummary;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.core.ParameterizedTypeReference;
@@ -22,5 +24,28 @@ public class RecursosClient {
                 .uri("/recursos")
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<RecursoSummary>>() {});
+    }
+
+    public RecursoSummary crear(CrearRecursoRequest req) {
+        return http.post()
+                .uri("/recursos")
+                .body(req)
+                .retrieve()
+                .body(RecursoSummary.class);
+    }
+
+    public void eliminar(Long id) {
+        http.delete()
+                .uri("/recursos/{id}", id)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public RecursoSummary actualizar(Long id, ActualizarRecursoRequest req) {
+        return http.patch()
+                .uri("/recursos/{id}", id)
+                .body(req)
+                .retrieve()
+                .body(RecursoSummary.class);
     }
 }

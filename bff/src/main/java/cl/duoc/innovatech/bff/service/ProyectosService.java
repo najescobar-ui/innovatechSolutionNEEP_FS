@@ -1,5 +1,8 @@
 package cl.duoc.innovatech.bff.service;
 
+import cl.duoc.innovatech.bff.domain.ActualizarProyectoRequest;
+import cl.duoc.innovatech.bff.domain.CrearProyectoRequest;
+import cl.duoc.innovatech.bff.domain.ProyectoSummary;
 import cl.duoc.innovatech.bff.domain.ProyectosResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,5 +29,18 @@ public class ProyectosService {
                     log.warn("ms-proyectos cayo, devolviendo fallback ({})", ex.getMessage());
                     return ProyectosResponse.unavailable();
                 });
+    }
+
+    // Crear no usa fallback: si falla, el llamador necesita saberlo.
+    public ProyectoSummary crear(CrearProyectoRequest req) {
+        return client.crear(req);
+    }
+
+    public void eliminar(Long id) {
+        client.eliminar(id);
+    }
+
+    public ProyectoSummary actualizar(Long id, ActualizarProyectoRequest req) {
+        return client.actualizar(id, req);
     }
 }
