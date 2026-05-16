@@ -28,3 +28,20 @@ replay_pid*
 .env.local
 .env.*.local
 !.env.example
+
+# Maven build artifacts
+target/
+
+# Node / Vite
+node_modules/
+.vite/
+dist/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
