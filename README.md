@@ -1,10 +1,10 @@
-# Innovatech Solutions
+# InnovaTech Solutions
 
-Plataforma de gestión de proyectos basada en arquitectura de microservicios con autenticación centralizada, service discovery, circuit breakers y observabilidad end-to-end.
+Plataforma de gestión de proyectos basada en arquitectura de microservicios con autenticación centralizada, service discovery, circuit breakers, persistencia histórica de KPIs y un frontend dark estilo *Linear/Vercel* totalmente integrado al stack.
 
 ## Contexto del Negocio
 
-**Innovatech Solutions** es una empresa de desarrollo de software a medida y
+**InnovaTech Solutions** es una empresa de desarrollo de software a medida y
 consultoría tecnológica con más de 120 empleados. Sus equipos son
 multidisciplinarios (backend, frontend, DevOps, UX, gestores de proyecto) y
 están distribuidos en distintas ubicaciones geográficas.
@@ -17,42 +17,47 @@ están distribuidos en distintas ubicaciones geográficas.
 
 ## Stack Tecnológico
 
-| Capa | Tecnología |
-|------|------------|
-| Frontend | React 18.3 |
-| Autenticación | Keycloak 24.x (OAuth2 / OpenID Connect) |
-| API Gateway | Spring Cloud Gateway |
-| BFF | Spring Boot |
-| Microservicios | Spring Boot + Spring Data JPA + Hibernate 6.4 |
-| Service Discovery | Netflix Eureka |
-| Circuit Breaker | Resilience4j 2.2 |
-| Base de datos | PostgreSQL |
-| Pool de conexiones | HikariCP |
-| Mensajería SMTP (dev) | MailHog |
-| Observabilidad | Prometheus 2.51 + Grafana 10.4 |
-| Contenedores | Docker + Docker Compose |
+| Capa | Tecnología | Versión |
+|------|------------|---------|
+| Runtime backend | Java LTS | **25** |
+| Framework backend | Spring Boot | **4.0.x** |
+| Release train | Spring Cloud | **2025.1.0 "Oakwood"** |
+| Persistencia | Spring Data JPA + Hibernate | 7.x |
+| Migraciones | Flyway | 11.x |
+| Pool de conexiones | HikariCP | default Boot |
+| Autenticación | Keycloak (OAuth2/OIDC, realm `innovatech`) | 24.x |
+| API Gateway | Spring Cloud Gateway Server WebFlux | starter 5.0.x |
+| Service Discovery | Netflix Eureka | starter 5.0.x |
+| Circuit Breaker | Resilience4j | 2.2 |
+| Base de datos | PostgreSQL | **16** |
+| Frontend | React + Vite + TypeScript | 18.3 / 5.x |
+| UI styling | Tailwind CSS + Recharts + Lucide | 3.4 / 2.13 |
+| Autenticación FE | keycloak-js (PKCE) | 24.x |
+| HTTP FE | Axios con interceptor de refresh | 1.x |
+| Build & runtime FE | Vite (build) → Nginx Alpine (serve) | — |
+| Build tool | Maven multi-module | 3.9+ |
+| Contenedores | Docker + Docker Compose | — |
 
 ## Componentes y Puertos
 
-| Servicio | Host interno | Puerto | URL local |
-|----------|--------------|--------|-----------|
-| Frontend | - | 3000 | http://localhost:3000 |
+| Servicio | Host interno | Puerto host | URL local |
+|----------|--------------|-------------|-----------|
+| Frontend (Nginx) | frontend | 3000 → 80 | http://localhost:3000 |
 | Keycloak | keycloak | 8080 | http://localhost:8080 |
 | API Gateway | api-gateway | 9000 | http://localhost:9000 |
-| BFF | bff | 8084 | - |
-| ms-proyectos | ms-proyectos | 8081 | - |
-| ms-recursos | ms-recursos | 8082 | - |
-| ms-analitica | ms-analitica | 8083 | - |
+| BFF | bff | 8084 | — |
+| ms-proyectos | ms-proyectos | 8081 | — |
+| ms-recursos | ms-recursos | 8082 | — |
+| ms-analitica | ms-analitica | 8083 | — |
 | Eureka Server | eureka-server | 8761 | http://localhost:8761 |
-| DB Proyectos | db-proyectos | 5432 | - |
-| DB Recursos | db-recursos | 5433 | - |
-| DB Analítica | db-analitica | 5434 | - |
-| MailHog (SMTP) | mailhog | 1025 | - |
-| MailHog (UI) | mailhog | 8025 | http://localhost:8025 |
-| Prometheus | prometheus | 9090 | http://localhost:9090 |
-| Grafana | grafana | 3001 | http://localhost:3001 |
+| DB Proyectos | db-proyectos | 5432 | — |
+| DB Recursos | db-recursos | 5433 | — |
+| DB Analítica | db-analitica | 5434 | — |
+| DB Keycloak | db-keycloak | 5435 | — |
 
 Toda la comunicación interna ocurre sobre la red Docker `innovatech-net`.
+
+> **Pendientes de orquestación** (placeholders comentados en `docker-compose.yml`): MailHog (notificaciones SMTP dev), Prometheus 2.51 y Grafana 10.4 para observabilidad. Los servicios Spring ya exponen `/actuator/prometheus`, falta solo descomentar el bloque y proveer la config.
 
 ## Arquitectura General
 
@@ -61,15 +66,16 @@ graph TB
     User([Usuario])
 
     subgraph "Cliente"
-        FE[Frontend<br/>React 18.3<br/>:3000]
+        FE[Frontend<br/>React 18.3 + Vite<br/>Nginx :3000]
     end
 
     subgraph "Identidad"
         KC[Keycloak 24.x<br/>realm: innovatech<br/>:8080]
+        DBKC[(db-keycloak<br/>:5435)]
     end
 
     subgraph "Edge"
-        GW[API Gateway<br/>:9000<br/>Rate limit 10 req/s]
+        GW[API Gateway<br/>Spring Cloud Gateway 5.x<br/>:9000]
     end
 
     subgraph "Orquestación"
@@ -83,51 +89,35 @@ graph TB
     subgraph "Microservicios"
         MS1[ms-proyectos<br/>:8081]
         MS2[ms-recursos<br/>:8082]
-        MS3[ms-analitica<br/>:8083]
+        MS3[ms-analitica<br/>:8083<br/>@Scheduled snapshots]
     end
 
     subgraph "Persistencia"
-        DB1[(db-proyectos<br/>PostgreSQL :5432)]
-        DB2[(db-recursos<br/>PostgreSQL :5433)]
-        DB3[(db-analitica<br/>PostgreSQL :5434)]
-    end
-
-    subgraph "Notificaciones"
-        MH[MailHog<br/>SMTP :1025]
-    end
-
-    subgraph "Observabilidad"
-        PROM[Prometheus 2.51]
-        GRAF[Grafana 10.4<br/>:3001]
+        DB1[(db-proyectos<br/>:5432)]
+        DB2[(db-recursos<br/>:5433)]
+        DB3[(db-analitica<br/>kpi_snapshots<br/>:5434)]
     end
 
     User --> FE
-    FE -->|1. Login| KC
-    FE -->|2. Bearer JWT| GW
-    GW -->|3. Valida JWK| KC
-    GW -->|4. Enruta| BFF
+    FE -->|1 Login PKCE| KC
+    FE -->|2 Bearer JWT| GW
+    GW -->|3 Valida JWK| KC
+    GW -->|4 Enruta /api/**| BFF
     BFF -->|5a| MS1
     BFF -->|5b| MS2
     BFF -->|5c| MS3
     MS1 --> DB1
     MS2 --> DB2
     MS3 --> DB3
-    MS2 -.SMTP.-> MH
-    MS3 -.REST.-> MS1
+    KC --> DBKC
+    MS3 -.REST snapshot fuentes.-> MS1
+    MS3 -.REST snapshot fuentes.-> MS2
 
     BFF -.register/discover.-> EUREKA
     MS1 -.register.-> EUREKA
     MS2 -.register.-> EUREKA
     MS3 -.register.-> EUREKA
     GW -.discover.-> EUREKA
-
-    PROM -.scrape /actuator/prometheus.-> GW
-    PROM -.scrape.-> BFF
-    PROM -.scrape.-> MS1
-    PROM -.scrape.-> MS2
-    PROM -.scrape.-> MS3
-    PROM -.scrape.-> EUREKA
-    GRAF --> PROM
 
     style FE fill:#61DAFB,color:#000
     style KC fill:#4D4D4D,color:#fff
@@ -139,21 +129,34 @@ graph TB
     style DB1 fill:#336791,color:#fff
     style DB2 fill:#336791,color:#fff
     style DB3 fill:#336791,color:#fff
-    style PROM fill:#E6522C,color:#fff
-    style GRAF fill:#F46800,color:#fff
+    style DBKC fill:#336791,color:#fff
 ```
-
-> Diagramas C4 detallados (System Context, Container y sub-diagramas por
-> patrón) disponibles en [`docs/diagramas/`](docs/diagramas/) (formato
-> drawio XML) y [`docs/imagenes/`](docs/imagenes/) (PNG renderizado).
 
 ## Dominio de cada Microservicio
 
 | Microservicio | Responsabilidad funcional |
 |---|---|
-| **ms-proyectos** | Core operativo. Ciclo de vida completo de proyectos: creación, tareas, asignación de responsables, estados y avance. Es el servicio con mayor crecimiento proyectado a medida que se sumen clientes. |
-| **ms-recursos** | Gestión de disponibilidad (capacity) del recurso humano, asignaciones a proyectos y visibilidad entre equipos. Dispara notificaciones SMTP cuando hay cambios de asignación. |
-| **ms-analitica** | Dashboards con KPIs para perfil **directivo**. Consume datos de los otros dos servicios vía REST interna; nunca duplica información. |
+| **ms-proyectos** | Core operativo. CRUD de proyectos: `GET /proyectos`, `GET /proyectos/{id}`, `POST /proyectos`, `PATCH /proyectos/{id}` (estado/responsable) y `DELETE /proyectos/{id}`. Migraciones Flyway. |
+| **ms-recursos** | Gestión del talento. CRUD: `GET`, `GET /{id}`, `POST`, `PATCH /{id}` (cambia flag `activo`), `DELETE /{id}`. Validación de email único. |
+| **ms-analitica** | Agregador de KPIs cross-org **con persistencia de snapshots históricos** (antes era stateless, decisión revisada el 2026-05-16). Consume `ms-proyectos`/`ms-recursos` vía REST + Eureka, nunca conecta directo a sus BDs. Expone `/analitica/kpis` (snapshot actual) y `/analitica/kpis/historico?desde&hasta&puntos` (serie temporal con tope de 30 días). |
+
+## Frontend
+
+Aplicación React + Vite + TypeScript, **dark theme** inspirado en Linear/Vercel/Supabase. Build estático servido por Nginx en contenedor.
+
+| Vista | Estado | Detalle |
+|-------|--------|---------|
+| **Login** | ✅ Implementado | Keycloak PKCE flow vía `keycloak-js`. Token en memoria, refresh transparente vía interceptor Axios. |
+| **Dashboard** | ✅ Implementado | KPIs derivados de fuentes reales (sin hardcoded). Vista distinta por rol (PM, DEV, DIR) con Factory Method en BFF. Para DIR: KPI cards con sparkline, donut de recursos por rol, panel de capacidad, barra apilada de proyectos por estado, **selector de fechas (rango ≤ 30 días) + gráfico de evolución** con utilización vs proyectos activos. |
+| **Proyectos** | ✅ Implementado | Tabla densa con búsqueda, filtros por estado, badges semánticos. Crear (modal), editar estado/responsable (modal, solo DIR), selección múltiple + borrado en lote (solo DIR). |
+| **Recursos** | ✅ Implementado | Tabla densa con avatares + iniciales, filtros por rol y "solo activos". Badges con paleta por rol (DEV/QA/DEVOPS/DESIGNER/PM). Crear, marcar inactivo (solo DIR), borrado en lote (solo DIR). |
+| **Analítica** | 🚧 Oculta | Vista dedicada para perfil directivo. Pendiente próxima iteración. El backend (snapshots + endpoint histórico) ya está disponible. |
+
+**Componentes reutilizables** en `frontend/src/components/`: `Card`, `Badge`, `Button`, `Checkbox` (con indeterminate), `Dropdown`, `Modal` + helpers (`Field`, `TextInput`, `SelectInput`, `TextArea`, `ConfirmDialog`), `Sidebar`, `Topbar`, `Layout`.
+
+**Tema** vía CSS variables en `index.css` (paleta `bg`/`surface`/`fg`/`accent`/`success`/`warning`/`danger` + colores específicos por rol funcional) consumidas desde Tailwind con `rgb(var(--x) / <alpha-value>)` para soportar opacidades semánticas.
+
+**Branding**: logo en `frontend/public/logoLuffy.png` + tipografía corporativa **Space Grotesk** (Google Fonts) en el sidebar.
 
 ## Flujo de Autenticación
 
@@ -167,15 +170,16 @@ sequenceDiagram
     participant KC as Keycloak
 
     U->>FE: Ingresa credenciales
-    FE->>KC: POST /realms/innovatech/protocol/openid-connect/token
-    KC-->>FE: { access_token, refresh_token, expires_in }
+    FE->>KC: PKCE login flow<br/>(realms/innovatech/protocol/openid-connect)
+    KC-->>FE: { access_token, refresh_token, expires_in, realm_access.roles }
     Note over FE: JWT en memoria<br/>(NO en localStorage)
+    Note over FE: keycloak.updateToken(15)<br/>refresh transparente vía interceptor Axios
     FE-->>U: Login OK, redirige a dashboard
 ```
 
 ## Flujo End-to-End de un Request
 
-Caso: usuario PM solicita su dashboard. El BFF orquesta 3 llamadas paralelas con Circuit Breaker.
+Caso: usuario DIR solicita su dashboard. El BFF orquesta llamadas a `ms-proyectos` (lista para hitos/en-curso) y a `ms-analitica` (KPIs agregados).
 
 ```mermaid
 sequenceDiagram
@@ -186,48 +190,76 @@ sequenceDiagram
     participant BFF
     participant E as Eureka
     participant P as ms-proyectos
-    participant R as ms-recursos
     participant A as ms-analitica
     participant DBP as db-proyectos
-    participant DBR as db-recursos
     participant DBA as db-analitica
 
     FE->>GW: GET /api/dashboard<br/>Authorization: Bearer JWT
-    GW->>KC: GET /protocol/openid-connect/certs
+    GW->>KC: GET /realms/innovatech/protocol/openid-connect/certs
     KC-->>GW: JWK Set (claves públicas)
-    Note over GW: Verifica firma, expiración, roles<br/>Aplica rate limit (10 req/s)
+    Note over GW: Valida firma del JWT<br/>+ Spring Security<br/>+ StripPrefix=1 (/api/x → /x)
     GW->>E: Discover bff
     E-->>GW: bff:8084
-    GW->>BFF: GET /dashboard<br/>X-User-Role: PM
+    GW->>BFF: GET /dashboard
 
-    par Llamadas paralelas con Circuit Breaker
-        BFF->>E: Discover ms-proyectos
-        E-->>BFF: ms-proyectos:8081
-        BFF->>P: GET /proyectos?responsable=usuario123
-        P->>DBP: SELECT * FROM proyectos WHERE responsable_id = ?
+    par Circuit Breaker por endpoint
+        BFF->>P: GET /proyectos
+        P->>DBP: SELECT * FROM proyectos
         DBP-->>P: ResultSet
-        P-->>BFF: JSON proyectos
+        P-->>BFF: List<ProyectoDto>
     and
-        BFF->>R: GET /asignaciones?usuario=usuario123
-        R->>DBR: SELECT * FROM asignaciones WHERE usuario_id = ?
-        DBR-->>R: ResultSet
-        R-->>BFF: JSON asignaciones
-    and
-        BFF->>A: GET /kpis/equipo
-        A->>DBA: SELECT ... FROM kpis
-        DBA-->>A: ResultSet
-        A-->>BFF: JSON KPIs
+        BFF->>A: GET /analitica/kpis
+        A->>DBA: (no consulta historicos aqui)
+        A->>P: GET /proyectos (snapshot fuente)
+        A-->>BFF: KpiResponse (utilizacion, activos, atrasados, breakdowns)
     end
 
-    Note over BFF: Factory Method según rol PM<br/>→ construye PMDashboardDto
-    BFF-->>GW: PMDashboardDto
+    Note over BFF: DashboardDtoFactory.create(role)<br/>→ construye DirDashboardDto con valores REALES<br/>(ya no hardcoded)
+    BFF-->>GW: DirDashboardDto
     GW-->>FE: JSON dashboard
-    Note over FE: Renderiza dashboard
+    Note over FE: Renderiza KPIs + gráfico de evolución
 ```
+
+## Snapshots Históricos de KPI (decisión 2026-05-16)
+
+`ms-analitica` toma snapshots periódicos de los KPIs agregados y los persiste en `db-analitica` (tabla `kpi_snapshots`). Permite series temporales para sparklines, deltas vs períodos anteriores y filtros por rango de fechas.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CR as @Scheduled<br/>(cron 0 */5 * * * *)
+    participant S as KpiSnapshotService
+    participant K as KpiService
+    participant P as ms-proyectos
+    participant R as ms-recursos
+    participant DBA as db-analitica
+
+    Note over S: @PostConstruct: si la tabla está vacía,<br/>backfill 12 puntos semanales sintéticos (jitter ±15%)<br/>para tener sparkline desde día 1
+    CR->>S: capturar()
+    S->>K: calcular()
+    K->>P: GET /proyectos
+    K->>R: GET /recursos
+    P-->>K: List<ProyectoView>
+    R-->>K: List<RecursoView>
+    Note over K: Calcula proyectos activos, atrasados,<br/>capacidad, % utilización (promedio/40h)
+    K-->>S: KpiResponse
+    S->>DBA: INSERT INTO kpi_snapshots ...
+    DBA-->>S: OK
+```
+
+**Endpoint `GET /api/kpis/historico`**:
+
+| Query param | Descripción | Default |
+|-------------|-------------|---------|
+| `puntos` | Últimos N snapshots | 12 |
+| `desde` | ISO date `YYYY-MM-DD` | — |
+| `hasta` | ISO date `YYYY-MM-DD` | — |
+
+Si `desde` + `hasta` están presentes, devuelve los snapshots en ese rango. Si el rango supera **30 días**, responde `400 Bad Request`. La respuesta incluye `deltas` vs ~30 días atrás (utilización, proyectos activos, recursos activos).
 
 ## Service Discovery (Eureka)
 
-Todos los componentes server-side se registran en Eureka al arrancar, y consultan Eureka antes de invocar a otro servicio. Esto permite escalado horizontal transparente.
+Todos los componentes server-side se registran en Eureka al arrancar, y consultan Eureka antes de invocar a otro servicio.
 
 ```mermaid
 graph LR
@@ -249,12 +281,12 @@ graph LR
 
 ## Manejo de Fallos: Circuit Breaker (Resilience4j)
 
-Cada llamada del BFF a un microservicio está envuelta en un Circuit Breaker independiente. Si `ms-analitica` no responde en 3s, el breaker se abre y el BFF devuelve un fallback sin afectar a los otros dos servicios.
+Cada llamada saliente del BFF está envuelta en un Circuit Breaker independiente (uno por endpoint downstream). Si `ms-analitica` no responde en 3s, el breaker se abre y el BFF devuelve un fallback **explícito** (`"datos no disponibles"`) sin afectar a los otros servicios.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Closed: arranque
-    Closed --> Open: umbral de fallos<br/>superado (>50% en 10 req)
+    Closed --> Open: umbral de fallos<br/>(>50% en 10 req)
     Open --> HalfOpen: timeout 30s
     HalfOpen --> Closed: request de prueba OK
     HalfOpen --> Open: request de prueba falla
@@ -268,26 +300,28 @@ stateDiagram-v2
     note right of Open
         Cortocircuita llamadas
         BFF retorna fallback
-        (cache o "no disponible")
+        ("datos no disponibles")
     end note
 
     note right of HalfOpen
-        Permite N requests
-        de prueba
+        Permite request de prueba
     end note
 ```
 
+> **Regla ética del fallback**: cuando un breaker está OPEN, el BFF responde `"datos no disponibles"` antes que datos potencialmente desactualizados. La empresa toma decisiones sobre personas con estos datos; mostrar información incorrecta es peor que mostrar nada.
+
 ## Aislamiento de Datos
 
-Cada microservicio accede **únicamente** a su propia base de datos. Si `ms-analitica` necesita datos de proyectos, lo hace vía REST al `ms-proyectos`, nunca conectándose directo a `db-proyectos`.
+Cada microservicio accede **únicamente** a su propia BD. `ms-analitica` consume datos de proyectos/recursos por REST (vía Eureka), nunca conectándose directo a sus BDs. Su BD propia solo aloja **snapshots agregados**.
 
 ```mermaid
 graph TB
     subgraph "Permitido"
         A1[ms-proyectos] --> D1[(db-proyectos)]
         A2[ms-recursos] --> D2[(db-recursos)]
-        A3[ms-analitica] --> D3[(db-analitica)]
-        A3 -.REST GET /proyectos/metricas.-> A1
+        A3[ms-analitica] --> D3[(db-analitica<br/>kpi_snapshots)]
+        A3 -.REST.-> A1
+        A3 -.REST.-> A2
     end
 
     subgraph "Prohibido"
@@ -298,88 +332,50 @@ graph TB
     style D4 fill:#E74C3C,color:#fff
 ```
 
-## Notificaciones por Correo
+## Patrones de Diseño Aplicados
 
-`ms-recursos` envía notificaciones SMTP cuando ocurre un cambio de asignación. En desarrollo todo va a MailHog.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant MS as ms-recursos
-    participant MH as MailHog (:1025)
-    participant DEV as Desarrollador
-
-    Note over MS: Detecta cambio de asignación
-    MS->>MH: SMTP<br/>From: notificaciones@innovatech.cl<br/>To: usuario@empresa.cl
-    MH-->>MS: 250 OK
-    DEV->>MH: GET http://localhost:8025
-    MH-->>DEV: Inbox UI con correos capturados
-```
-
-> En producción, el host SMTP se reemplaza por Gmail u otro proveedor mediante variables de entorno.
-
-## Observabilidad
-
-Prometheus hace scrape cada 15 segundos a los endpoints `/actuator/prometheus` de todos los servicios. Grafana lee de Prometheus y expone dashboards en `http://localhost:3001`.
-
-```mermaid
-graph LR
-    subgraph "Métricas expuestas"
-        S1[api-gateway<br/>/actuator/prometheus]
-        S2[bff<br/>/actuator/prometheus]
-        S3[ms-proyectos<br/>/actuator/prometheus]
-        S4[ms-recursos<br/>/actuator/prometheus]
-        S5[ms-analitica<br/>/actuator/prometheus]
-        S6[eureka-server<br/>/actuator/prometheus]
-    end
-
-    PROM[(Prometheus<br/>scrape 15s)]
-    GRAF[Grafana<br/>:3001]
-
-    S1 --> PROM
-    S2 --> PROM
-    S3 --> PROM
-    S4 --> PROM
-    S5 --> PROM
-    S6 --> PROM
-    PROM --> GRAF
-
-    style PROM fill:#E6522C,color:#fff
-    style GRAF fill:#F46800,color:#fff
-```
-
-Métricas relevantes recolectadas:
-
-- `jvm_memory_used_bytes` — RAM por servicio
-- `process_cpu_usage` — CPU
-- `http_server_requests_seconds` — latencia y conteo HTTP
-- `resilience4j_circuitbreaker_state` — estado de cada breaker (closed/open/half-open)
-- `resilience4j_circuitbreaker_calls` — calls exitosos y fallidos
-- `hikaricp_connections_active` — conexiones activas al pool de BD
+| Patrón | Dónde | Notas |
+|--------|-------|-------|
+| **API Gateway** | `api-gateway/` | Entrada única, valida JWT contra JWK de Keycloak, aplica `StripPrefix=1` para que `ms-*` no conozcan el prefijo `/api`. |
+| **Backend-for-Frontend (BFF)** | `bff/` | Agrega y adapta por rol. Sin BD propia. |
+| **Factory Method** | `bff/service/DashboardDtoFactory.java` | Construye `PMDashboardDto`/`DevDashboardDto`/`DirDashboardDto` según rol del JWT (sealed interface). |
+| **Circuit Breaker** | `bff/` (Resilience4j) | Uno por endpoint downstream. Timeout 3s, ventana de 10 req, 30s en OPEN. |
+| **Service Discovery** | Todos los Spring Boot | Eureka client + server. Sin URLs hardcodeadas. |
+| **Repository Pattern** | Cada `ms-*` y `ms-analitica` | Spring Data JPA, interfaces `*Repository`. |
+| **Database per Service** | Cada `ms-*` | PostgreSQL independiente. |
+| **Snapshot / Periodic Aggregation** | `ms-analitica` | `@Scheduled` toma snapshots cada N min para series temporales (sparkline, deltas). |
 
 ## Cómo Levantar el Entorno Local
+
+Un solo comando levanta el stack completo (DBs, Keycloak con realm pre-cargado, Eureka, servicios, BFF, Gateway y frontend).
 
 ```bash
 # 1. Clonar el repo
 git clone <repo-url>
 cd innovatech-solutions
 
-# 2. Levantar toda la infraestructura
-docker compose up -d
+# 2. (Opcional) copiar variables
+cp .env.example .env   # ajustar passwords si quieres
 
-# 3. Verificar registros en Eureka
-open http://localhost:8761
+# 3. Levantar TODO
+docker compose up -d --build
 
 # 4. Acceder al frontend
 open http://localhost:3000
+
+# 5. Ver servicios registrados en Eureka
+open http://localhost:8761
 ```
 
-Credenciales de prueba (realm `innovatech` en Keycloak):
+**Sub-comandos útiles:**
 
-| Usuario | Rol | Password |
-|---------|-----|----------|
-| pm.test | PM | (ver `.env.example`) |
-| dev.test | DEV | (ver `.env.example`) |
+```bash
+docker compose ps                       # estado de los contenedores
+docker compose logs -f bff              # logs en vivo
+docker compose up -d --no-deps --build ms-analitica  # rebuild de un servicio
+docker compose down                     # bajar (preserva volúmenes/datos)
+docker compose down -v                  # bajar BORRANDO datos de las BDs
+```
 
 ## URLs de Referencia
 
@@ -389,32 +385,72 @@ Credenciales de prueba (realm `innovatech` en Keycloak):
 | Keycloak Admin | http://localhost:8080 |
 | Eureka Dashboard | http://localhost:8761 |
 | API Gateway | http://localhost:9000 |
-| MailHog UI | http://localhost:8025 |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3001 |
+| Actuator (cualquier service Spring) | `http://localhost:<puerto>/actuator/health` |
 
-## Patrones de Diseño Aplicados
+## Convenciones del Proyecto
 
-- **API Gateway**: punto único de entrada, autenticación, rate limiting.
-- **BFF (Backend for Frontend)**: agregación y adaptación de respuestas según rol del usuario.
-- **Factory Method**: en el BFF, construye el DTO de dashboard apropiado según rol (`PMDashboardDto`, `DevDashboardDto`, etc).
-- **Circuit Breaker**: aislamiento de fallos entre microservicios.
-- **Service Discovery**: descubrimiento dinámico vía Eureka.
-- **Repository Pattern**: acceso a datos vía Spring Data JPA.
-- **Database per Service**: aislamiento total de datos por microservicio.
+**Naming:**
+- Módulos Maven: kebab-case (`ms-proyectos`, `api-gateway`).
+- `groupId`: `cl.duoc.innovatech`. Paquetes: `cl.duoc.innovatech.<modulo>`.
+- Imágenes Docker: `innovatech/<servicio>:dev`.
+- Tablas SQL: `snake_case` plural.
+- Endpoints REST: kebab-case plural (`/proyectos`, `/recursos`, `/kpis/historico`).
+
+**Git:**
+- Ramas: `PROD` (estable) ← `main` (deployable) ← `dev` (trabajo activo) ← `feature/*`, `fix/*`.
+- Commits en español, una línea, formato: `<Prefijo> <componentes>` sin dos puntos. Prefijos: `Se agrega`, `Se corrige`, `Refactorización`, `Nueva tarea`, `Documentación`, `Estilo`, `Pruebas`.
+
+## Roles y Permisos
+
+| Rol Keycloak | Vista | Crear | Editar | Borrar (individual + bulk) |
+|--------------|-------|-------|--------|---------------------------|
+| **PM** | Dashboard PM con cartera + hitos próximos | — | — | — |
+| **DEV** | Dashboard DEV con proyectos en curso | — | — | — |
+| **DIR** | Dashboard ejecutivo + Proyectos + Recursos + filtros de fecha | ✅ | ✅ (estado/responsable en proyectos; activo→inactivo en recursos) | ✅ |
 
 ## Consideraciones Éticas y de Cumplimiento
 
-El diseño sigue los principios de **Ethically Aligned Design (IEEE)**, dado
-que Innovatech maneja datos personales de más de 120 personas.
+El diseño sigue los principios de **Ethically Aligned Design (IEEE)**, dado que InnovaTech maneja datos personales de más de 120 personas.
 
 | Principio | Implementación en la plataforma |
 |---|---|
-| **Protección de datos y privacidad** | HTTPS/TLS en toda comunicación. Control de acceso por roles vía Keycloak. Minimización: cada microservicio solo accede a los datos que necesita. `ms-analitica` trabaja con métricas agregadas, no con datos individuales. |
-| **Transparencia y trazabilidad** | Logging centralizado con trazabilidad distribuida. Los KPIs expuestos en Grafana son auditables. |
-| **Resiliencia ética** | Cuando un servicio cae, el Circuit Breaker hace que el BFF retorne `"datos no disponibles"` antes que devolver datos erróneos que afecten decisiones sobre personas. Las métricas del CB en Prometheus permiten saber exactamente cuándo un servicio estuvo degradado. |
-| **Accesibilidad** | Frontend siguiendo **WCAG 2.1**, responsivo para equipos distribuidos. |
+| **Protección de datos y privacidad** | Control de acceso por roles vía Keycloak. JWT validado en cada request. Minimización: cada microservicio solo accede a los datos que necesita. `ms-analitica` trabaja con métricas agregadas (counts, ratios), no con datos individuales. |
+| **Transparencia y trazabilidad** | Logs estructurados en cada servicio. Endpoints Actuator expuestos para auditoría. Snapshots históricos permiten reconstruir el estado pasado de los KPIs. |
+| **Resiliencia ética** | Cuando un servicio cae, el Circuit Breaker hace que el BFF retorne `"datos no disponibles"` antes que devolver datos erróneos. |
+| **Accesibilidad** | Frontend con foco-visible, `aria-label` en botones de acciones, contraste WCAG AA en la paleta dark (verificado para `fg`/`fg-muted` sobre `bg`). |
 
 ---
 
-_Documentación generada para el proyecto Innovatech Solutions._
+## Referencias: Repositorios Similares en GitHub
+
+Selección curada de proyectos open source con stack o patrones equivalentes (Spring Boot + microservicios + Eureka + Gateway + Keycloak + Resilience4j + Docker Compose). Útiles como benchmark o para comparar decisiones.
+
+### Stack altísimamente equivalente
+
+- **[arivan-amin/Cinemayan-Spring-Microservices](https://github.com/arivan-amin/Cinemayan-Spring-Microservices)** — ⭐ El más cercano: **Java 25 + Spring Boot 4**, Eureka, Keycloak, Prometheus/Grafana/Loki/Tempo, Clean Architecture + DDD.
+- **[Nasruddin/spring-boot-based-microservices](https://github.com/Nasruddin/spring-boot-based-microservices)** — Spring Cloud Gateway + Keycloak (OAuth2/OIDC) + observabilidad completa (OTel + Grafana + Loki + Tempo + Prometheus), MongoDB + PostgreSQL, Docker Compose y Kubernetes.
+- **[miliariadnane/demo-microservices](https://github.com/miliariadnane/demo-microservices)** — E-commerce con Eureka + **Resilience4j Circuit Breaker** + Keycloak/OAuth2 + Feign + RabbitMQ + Prometheus/Grafana + Zipkin/Sleuth + PostgreSQL.
+- **[subhashlamba/spring-boot-microservice-example](https://github.com/subhashlamba/spring-boot-microservice-example)** — Eureka Server/Client + Spring Cloud API Gateway + OAuth2 + **Resilience4j** + Feign + Zipkin. Excelente para comparar el wiring básico.
+
+### Mismo patrón general (microservicios + Gateway + Eureka + Keycloak)
+
+- **[SaiUpadhyayula/spring-boot-3-microservices-course](https://github.com/SaiUpadhyayula/spring-boot-3-microservices-course)** — Spring Boot 3, Angular, Keycloak (OAuth2), Kafka, Schema Registry, Kubernetes, Grafana/Loki/Tempo.
+- **[Rapter1990/SpringBootMicroservices](https://github.com/Rapter1990/SpringBootMicroservices)** — Eureka + Config Server + API Gateway + Keycloak + RabbitMQ + Docker Compose.
+- **[kartik1502/Spring-Boot-Microservices-Banking-Application](https://github.com/kartik1502/Spring-Boot-Microservices-Banking-Application)** — Aplicación bancaria con Service Registry + API Gateway + Feign + Keycloak + Spring Data JPA + MySQL.
+- **[andresrodriguez55/rent-a-car-microservices](https://github.com/andresrodriguez55/rent-a-car-microservices)** — Eureka + Keycloak + Kafka + OpenFeign + Grafana/Prometheus/Zipkin + Clean Architecture.
+
+### Casos de referencia (libros / series)
+
+- **[hdimitrieski/e-shop](https://github.com/hdimitrieski/e-shop)** — Spring Cloud + Keycloak + CQRS/Event Sourcing (Axon) + Kafka + GraphQL + Zipkin. Más ambicioso, útil para ver event-driven sobre la misma base.
+- **[PacktPublishing/Microservices-with-Spring-Boot-and-Spring-Cloud-Third-Edition](https://github.com/PacktPublishing/Microservices-with-Spring-Boot-and-Spring-Cloud-Third-Edition)** — Código del libro de Magnus Larsson (3ra ed.). Referencia canónica.
+- **[sivaprasadreddy/spring-boot-microservices-series](https://github.com/sivaprasadreddy/spring-boot-microservices-series)** — Serie de artículos con código asociado.
+- **[anilallewar/microservices-basics-spring-boot](https://github.com/anilallewar/microservices-basics-spring-boot)** — Framework educativo clásico para crear microservicios con Spring Boot + Spring Cloud.
+
+### Listas y meta-referencias
+
+- **[mfornos/awesome-microservices](https://github.com/mfornos/awesome-microservices)** — Lista curada de principios, frameworks y herramientas de arquitectura de microservicios (14K ⭐).
+- **[rohitghatol/spring-boot-microservices](https://github.com/rohitghatol/spring-boot-microservices)** — Template pionero (Zuul/Eureka/Hystrix) — desactualizado pero útil para entender la evolución del stack.
+
+---
+
+_Documentación actualizada el 2026-05-16. Refleja el estado tras incorporar persistencia histórica en `ms-analitica`, frontend completo (Dashboard real, Proyectos y Recursos con CRUD parcial), filtro de fechas en Dashboard y branding (logo + tipografía corporativa). La vista **Analítica** queda planificada para la siguiente iteración._
