@@ -1,10 +1,10 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthProvider";
 import { useAuth } from "./auth/useAuth";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
-import { Pendiente } from "./pages/Pendiente";
 import { Proyectos } from "./pages/Proyectos";
+import { Recursos } from "./pages/Recursos";
 
 function Cargando() {
   return (
@@ -25,8 +25,9 @@ function Rutas() {
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/proyectos" element={<Proyectos />} />
-          <Route path="/recursos" element={<Pendiente titulo="Recursos" />} />
-          <Route path="/analitica" element={<Pendiente titulo="Analitica" />} />
+          <Route path="/recursos" element={<Recursos />} />
+          {/* cualquier ruta vieja o futura cae al dashboard mientras tanto */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

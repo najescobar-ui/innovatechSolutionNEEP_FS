@@ -1,39 +1,21 @@
-import { useAuth } from "../auth/useAuth";
-import { Badge } from "./Badge";
-import { Button } from "./Button";
+import { useLocation } from "react-router-dom";
 
-function iniciales(nombre: string) {
-  return nombre
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
-
-const tonoRol: Record<string, "info" | "success" | "warning"> = {
-  PM: "info",
-  DEV: "success",
-  DIR: "warning",
+const titulos: Record<string, string> = {
+  "/":          "Dashboard",
+  "/proyectos": "Proyectos",
+  "/recursos":  "Recursos",
+  "/analitica": "Analitica",
 };
 
 export function Topbar() {
-  const { fullName, username, roles, logout } = useAuth();
-  const rolPrincipal = roles[0] ?? "";
+  const { pathname } = useLocation();
+  const titulo = titulos[pathname] ?? pathname.replace("/", "");
 
   return (
-    <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-end gap-4 px-6">
-      <div className="flex items-center gap-3">
-        <div className="text-right leading-tight">
-          <div className="text-sm font-medium text-slate-900">{fullName || username}</div>
-          <div className="text-xs text-slate-500">@{username}</div>
-        </div>
-        <div className="w-9 h-9 rounded-full bg-indigo-600 text-white text-sm font-semibold flex items-center justify-center">
-          {iniciales(fullName || username)}
-        </div>
-        {rolPrincipal && <Badge tone={tonoRol[rolPrincipal] ?? "neutral"}>{rolPrincipal}</Badge>}
-      </div>
-      <Button variant="outline" onClick={logout}>Salir</Button>
+    <header className="h-12 flex items-center justify-between px-6 border-b border-border bg-bg">
+      <h1 className="text-[13px] font-medium text-fg">{titulo}</h1>
+      {/* slot derecho reservado: acciones globales (search, notif...) entran aca cuando existan */}
+      <div />
     </header>
   );
 }

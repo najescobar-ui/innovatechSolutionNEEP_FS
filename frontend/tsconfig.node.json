@@ -8,7 +8,9 @@
     "strict": true,
     "skipLibCheck": true,
     "composite": true,
-    "noEmit": true
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.tmp/tsc-node",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsc-node/.tsbuildinfo"
   },
   "include": ["vite.config.ts"]
 }

@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
 
-type Tone = "neutral" | "success" | "warning" | "danger" | "info";
+type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "accent";
 
 const tonos: Record<Tone, string> = {
-  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
-  success: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  warning: "bg-amber-50 text-amber-700 ring-amber-200",
-  danger:  "bg-rose-50 text-rose-700 ring-rose-200",
-  info:    "bg-indigo-50 text-indigo-700 ring-indigo-200",
+  neutral: "bg-fg-muted/10 text-fg-muted",
+  success: "bg-success/10 text-success",
+  warning: "bg-warning/10 text-warning",
+  danger:  "bg-danger/10 text-danger",
+  info:    "bg-info/10 text-info",
+  accent:  "bg-accent/10 text-accent",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
   return (
-    <span className={`inline-flex items-center rounded-full ring-1 ring-inset px-2 py-0.5 text-xs font-medium ${tonos[tone]}`}>
+    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium ${tonos[tone]}`}>
       {children}
     </span>
   );

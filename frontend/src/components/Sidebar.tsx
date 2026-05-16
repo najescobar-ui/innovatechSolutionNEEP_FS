@@ -1,41 +1,124 @@
+import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Users, BarChart3 } from "lucide-react";
+import {
+  LayoutDashboard,
+  FolderKanban,
+  Users,
+  LogOut,
+  ChevronsUpDown,
+} from "lucide-react";
+import { useAuth } from "../auth/useAuth";
 
+// "Analitica" oculta hasta que se libere su vista (proxima iteracion).
 const items = [
   { to: "/",          label: "Dashboard", Icon: LayoutDashboard },
   { to: "/proyectos", label: "Proyectos", Icon: FolderKanban },
   { to: "/recursos",  label: "Recursos",  Icon: Users },
-  { to: "/analitica", label: "Analitica", Icon: BarChart3 },
 ];
+
+function iniciales(nombre: string) {
+  return nombre
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
 
 export function Sidebar() {
   return (
-    <aside className="w-60 shrink-0 bg-slate-900 text-slate-100 flex flex-col">
-      <div className="h-14 flex items-center px-6 border-b border-slate-800">
-        <span className="font-semibold tracking-tight">Innovatech</span>
+    <aside className="w-60 shrink-0 bg-bg text-fg flex flex-col border-r border-border">
+      <div className="px-5 pt-4 pb-3 flex flex-col items-start gap-1.5">
+        <img
+          src="/logoLuffy.png"
+          alt="InnovaTech"
+          className="w-9 h-9 object-contain select-none"
+          draggable={false}
+        />
+        <span className="font-brand text-[15px] font-semibold text-fg leading-none">
+          Innova<span className="text-accent">Tech</span>
+        </span>
       </div>
-      <nav className="flex-1 px-3 py-4 space-y-1">
+
+      <nav className="flex-1 px-2 py-2 space-y-0.5">
         {items.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+              `relative flex items-center gap-2.5 rounded px-3 py-1.5 text-[13px] transition-colors ${
                 isActive
-                  ? "bg-slate-800 text-white"
-                  : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                  ? "bg-[#1F1F1F] text-fg"
+                  : "text-fg-muted hover:bg-surface2 hover:text-fg"
               }`
             }
           >
-            <Icon size={16} className="shrink-0" />
-            <span>{label}</span>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-accent" />
+                )}
+                <Icon size={16} className="shrink-0" />
+                <span>{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
-      <div className="px-6 py-3 text-xs text-slate-500 border-t border-slate-800">
-        v0.1.0 — dev
-      </div>
+
+      <UserBlock />
     </aside>
+  );
+}
+
+function UserBlock() {
+  const { fullName, username, roles, logout } = useAuth();
+  const rolPrincipal = roles[0] ?? "";
+  const display = fullName || username || "usuario";
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative p-2 border-t border-border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2.5 rounded px-2 py-1.5 hover:bg-surface2 transition-colors text-left"
+      >
+        <div className="w-7 h-7 rounded-full bg-[#1F1F1F] text-fg text-[11px] font-semibold flex items-center justify-center shrink-0">
+          {iniciales(display)}
+        </div>
+        <div className="flex-1 min-w-0 leading-tight">
+          <div className="text-[13px] text-fg truncate">{display}</div>
+          <div className="text-[11px] text-fg-muted truncate">
+            {rolPrincipal ? `@${username} · ${rolPrincipal}` : `@${username}`}
+          </div>
+        </div>
+        <ChevronsUpDown size={14} className="text-fg-subtle shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute left-2 right-2 bottom-[calc(100%-0.5rem)] mb-2 bg-surface border border-border rounded-md shadow-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={logout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-fg-muted hover:bg-surface2 hover:text-fg transition-colors"
+          >
+            <LogOut size={14} />
+            <span>Salir</span>
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

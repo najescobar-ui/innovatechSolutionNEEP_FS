@@ -1,13 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  AlertOctagon, AlertTriangle, Briefcase, CheckCircle2, Clock, FolderKanban,
-  Gauge, Layers, ListChecks, Sparkles, TrendingUp, Users,
-} from "lucide-react";
-import {
-  Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer,
+  CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer,
   Tooltip, XAxis, YAxis,
 } from "recharts";
-import type { LucideIcon } from "lucide-react";
 import { Card, CardBody, CardHeader } from "../components/Card";
 import { Badge } from "../components/Badge";
 import { api } from "../api/client";
@@ -33,38 +28,102 @@ type Kpis = {
   totalRecursosActivos: number;
   capacidadSemanalTotalHoras: number;
   promedioHorasPorRecurso: number;
+  porcentajeUtilizacion?: number;
   recursosPorRol: Record<string, number>;
   proyectosPorEstado: Record<string, number>;
 };
 
-// Paleta consistente para los charts
-const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#8b5cf6"];
+type Historico = {
+  status: string;
+  utilizacion: { t: string; v: number }[];
+  proyectosActivos: { t: string; v: number }[];
+  deltas: {
+    porcentajeUtilizacion: number | null;
+    proyectosActivos: number | null;
+    recursosActivos: number | null;
+  };
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  DEV:      "rgb(var(--role-dev))",
+  QA:       "rgb(var(--role-qa))",
+  DEVOPS:   "rgb(var(--role-devops))",
+  DESIGNER: "rgb(var(--role-designer))",
+  PM:       "rgb(var(--role-pm))",
+};
+const FALLBACK_COLOR = "rgb(var(--fg-muted))";
+
+const ESTADO_COLORS: Record<string, string> = {
+  PLANIFICACION: "rgb(var(--info))",
+  EN_CURSO:      "rgb(var(--success))",
+  COMPLETADO:    "rgb(var(--fg-muted))",
+  CANCELADO:     "rgb(var(--danger))",
+  PAUSADO:       "rgb(var(--warning))",
+};
+
+const MAX_RANGO_DIAS = 30;
+
+// Helpers de fecha: trabajamos con YYYY-MM-DD locales para los inputs nativos.
+function isoDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function hoyISO() { return isoDate(new Date()); }
+function haceDiasISO(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return isoDate(d);
+}
+function diasEntre(desde: string, hasta: string): number {
+  const a = new Date(desde + "T00:00:00");
+  const b = new Date(hasta + "T00:00:00");
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
 
 export function Dashboard() {
   const { fullName, username, roles } = useAuth();
   const [data, setData] = useState<Dashboard | null>(null);
   const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [historico, setHistorico] = useState<Historico | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  // Rango de fechas para el grafico de evolucion (default: ultimos 30 dias).
+  const [desde, setDesde] = useState<string>(haceDiasISO(30));
+  const [hasta, setHasta] = useState<string>(hoyISO());
+  const [errRango, setErrRango] = useState<string | null>(null);
 
   useEffect(() => {
     api.get<Dashboard>("/dashboard")
       .then((r) => setData(r.data))
       .catch((e) => setErr(e.message ?? "error desconocido"));
 
-    // Los KPIs los usa el DIR. Para PM/DEV no hace falta cargarlos.
     if (roles.includes("DIR")) {
       api.get<Kpis>("/kpis").then((r) => setKpis(r.data)).catch(() => {});
     }
   }, [roles.join(",")]);
 
+  // Refetch historico cuando cambia el rango (con validacion).
+  useEffect(() => {
+    if (!roles.includes("DIR")) return;
+    const dias = diasEntre(desde, hasta);
+    if (dias < 0) { setErrRango("La fecha 'hasta' no puede ser anterior a 'desde'."); return; }
+    if (dias > MAX_RANGO_DIAS) { setErrRango(`El rango maximo es ${MAX_RANGO_DIAS} dias.`); return; }
+    setErrRango(null);
+    api.get<Historico>(`/kpis/historico?desde=${desde}&hasta=${hasta}`)
+      .then((r) => setHistorico(r.data))
+      .catch(() => setHistorico(null));
+  }, [roles.join(","), desde, hasta]);
+
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-5 max-w-[1200px]">
       <Hero fullName={fullName} username={username} roles={roles} />
 
       {err && (
         <Card>
           <CardBody>
-            <p className="text-rose-700 text-sm">No se pudo cargar el dashboard: {err}</p>
+            <p className="text-danger text-[13px]">No se pudo cargar el dashboard: {err}</p>
           </CardBody>
         </Card>
       )}
@@ -73,7 +132,19 @@ export function Dashboard() {
 
       {data?.role === "PM" && <DashboardPM data={data} />}
       {data?.role === "DEV" && <DashboardDev data={data} />}
-      {data?.role === "DIR" && <DashboardDir data={data} kpis={kpis} />}
+      {data?.role === "DIR" && (
+        <DashboardDir
+          data={data}
+          kpis={kpis}
+          historico={historico}
+          desde={desde}
+          hasta={hasta}
+          onDesde={setDesde}
+          onHasta={setHasta}
+          errRango={errRango}
+          onReset={() => { setDesde(haceDiasISO(30)); setHasta(hoyISO()); }}
+        />
+      )}
     </div>
   );
 }
@@ -81,87 +152,94 @@ export function Dashboard() {
 function Hero({ fullName, username, roles }: { fullName: string; username: string; roles: string[] }) {
   const rol = roles[0] ?? "";
   const subtitulo: Record<string, string> = {
-    PM: "Tu cartera de proyectos y los hitos del proximo trimestre.",
+    PM:  "Tu cartera de proyectos y los hitos del proximo trimestre.",
     DEV: "Tu carga de trabajo y los proyectos en los que estas asignado.",
     DIR: "Indicadores ejecutivos y salud general de la operacion.",
   };
   return (
-    <div className="flex items-start justify-between gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">
-          Hola, {fullName || username}
-        </h1>
-        <p className="text-sm text-slate-500 mt-1 max-w-xl">
-          {subtitulo[rol] ?? "Bienvenido a Innovatech."}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <Badge tone="info">@{username}</Badge>
-        {rol && <Badge tone="neutral">Rol: {rol}</Badge>}
-      </div>
+    <div>
+      <h1 className="text-lg font-semibold text-fg">
+        Hola, {fullName || username}
+      </h1>
+      <p className="text-[13px] text-fg-muted mt-0.5">
+        {subtitulo[rol] ?? "Bienvenido a Innovatech."}
+      </p>
     </div>
   );
 }
 
-function MetricCard({
-  Icon, label, value, sub, tone = "indigo", progress,
+type Delta = { value: number; suffix?: string };
+function KpiCard({
+  label, value, delta, sparkline, valueColor,
 }: {
-  Icon: LucideIcon;
   label: string;
-  value: number | string;
-  sub?: string;
-  tone?: "indigo" | "emerald" | "amber" | "rose";
-  progress?: { pct: number; label?: string };
+  value: string;
+  delta?: Delta;
+  sparkline?: number[];
+  valueColor?: string;
 }) {
-  const ringTone: Record<string, string> = {
-    indigo: "bg-indigo-50 text-indigo-600",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
-    rose: "bg-rose-50 text-rose-600",
-  };
-  const barTone: Record<string, string> = {
-    indigo: "bg-indigo-500",
-    emerald: "bg-emerald-500",
-    amber: "bg-amber-500",
-    rose: "bg-rose-500",
-  };
   return (
     <Card>
       <CardBody className="space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
-            <div className="mt-1 text-3xl font-semibold text-slate-900">{value}</div>
-            {sub && <div className="text-xs text-slate-500 mt-1">{sub}</div>}
-          </div>
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${ringTone[tone]}`}>
-            <Icon size={20} />
+        <div className="text-[11px] uppercase tracking-wider font-medium text-fg-muted">{label}</div>
+        <div className="flex items-baseline gap-2">
+          <div className={`font-mono text-[28px] leading-none ${valueColor ?? "text-fg"}`}>
+            {value}
           </div>
         </div>
-        {progress && (
-          <div>
-            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${barTone[tone]} transition-all`}
-                style={{ width: `${Math.min(100, Math.max(0, progress.pct))}%` }}
-              />
-            </div>
-            {progress.label && <div className="text-xs text-slate-500 mt-1.5">{progress.label}</div>}
-          </div>
-        )}
+        {delta && <DeltaPill delta={delta} />}
+        {sparkline && <Sparkline points={sparkline} />}
       </CardBody>
     </Card>
   );
 }
 
+function DeltaPill({ delta }: { delta: Delta }) {
+  const positive = delta.value > 0;
+  const zero = delta.value === 0;
+  const color = zero ? "text-fg-muted" : positive ? "text-success" : "text-danger";
+  const arrow = zero ? "→" : positive ? "↑" : "↓";
+  return (
+    <div className={`flex items-center gap-1 text-[11px] ${color}`}>
+      <span>{arrow}</span>
+      <span className="font-mono">{positive ? "+" : ""}{delta.value}{delta.suffix ?? ""}</span>
+      <span className="text-fg-subtle">vs mes anterior</span>
+    </div>
+  );
+}
+
+function Sparkline({ points }: { points: number[] }) {
+  if (points.length < 2) return null;
+  const w = 200;
+  const h = 28;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+  const stepX = w / (points.length - 1);
+  const d = points
+    .map((p, i) => {
+      const x = i * stepX;
+      const y = h - ((p - min) / range) * h;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const dArea = `${d} L${w},${h} L0,${h} Z`;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-7 mt-1" preserveAspectRatio="none">
+      <path d={dArea} fill="rgb(var(--accent) / 0.12)" />
+      <path d={d} fill="none" stroke="rgb(var(--accent))" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function SkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {[0, 1, 2].map((i) => (
         <Card key={i}>
           <CardBody>
-            <div className="h-3 w-24 bg-slate-200 rounded animate-pulse" />
-            <div className="h-8 w-16 bg-slate-200 rounded mt-3 animate-pulse" />
+            <div className="h-2.5 w-20 bg-surface2 rounded animate-pulse" />
+            <div className="h-7 w-24 bg-surface2 rounded mt-3 animate-pulse" />
           </CardBody>
         </Card>
       ))}
@@ -176,49 +254,32 @@ function DashboardPM({ data }: { data: Dashboard }) {
   const cumplimiento = Math.max(0, 100 - pctRiesgo);
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard
-          Icon={FolderKanban}
-          label="Proyectos supervisados"
-          value={total}
-          sub="En tu cartera actual"
-          tone="indigo"
-        />
-        <MetricCard
-          Icon={AlertTriangle}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <KpiCard label="Proyectos supervisados" value={String(total)} />
+        <KpiCard
           label="Tareas en riesgo"
-          value={enRiesgo}
-          sub={`${pctRiesgo}% del total`}
-          tone="amber"
-          progress={{ pct: pctRiesgo, label: `${pctRiesgo}% requiere atencion` }}
+          value={String(enRiesgo)}
+          valueColor="text-warning"
         />
-        <MetricCard
-          Icon={CheckCircle2}
+        <KpiCard
           label="Cumplimiento"
           value={`${cumplimiento}%`}
-          sub="Tareas dentro de plazo"
-          tone="emerald"
-          progress={{ pct: cumplimiento }}
+          valueColor={cumplimiento >= 70 ? "text-success" : "text-warning"}
         />
       </div>
 
       <Card>
         <CardHeader title="Proximos hitos" subtitle="Lo que viene en las proximas semanas" />
         <CardBody className="!py-0">
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {(data.proximosHitos ?? []).map((h, i) => (
-              <li key={i} className="py-3 flex items-center justify-between text-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <Sparkles size={16} />
-                  </div>
-                  <span className="text-slate-700">{h}</span>
-                </div>
+              <li key={i} className="py-3 flex items-center justify-between text-[13px]">
+                <span className="text-fg">{h}</span>
                 <Badge tone="info">proximo</Badge>
               </li>
             ))}
             {(data.proximosHitos ?? []).length === 0 && (
-              <li className="py-6 text-sm text-slate-500 text-center">Sin hitos cargados.</li>
+              <li className="py-6 text-[13px] text-fg-muted text-center">Sin hitos cargados.</li>
             )}
           </ul>
         </CardBody>
@@ -234,51 +295,31 @@ function DashboardDev({ data }: { data: Dashboard }) {
   const pctCompletadas = asignadas === 0 ? 0 : Math.round((completadas / asignadas) * 100);
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard
-          Icon={ListChecks}
-          label="Tareas asignadas"
-          value={asignadas}
-          sub="Total en tu cola"
-          tone="indigo"
-        />
-        <MetricCard
-          Icon={Clock}
-          label="Pendientes"
-          value={pendientes}
-          sub={`${asignadas - pendientes} ya completadas`}
-          tone="amber"
-        />
-        <MetricCard
-          Icon={TrendingUp}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <KpiCard label="Tareas asignadas" value={String(asignadas)} />
+        <KpiCard label="Pendientes" value={String(pendientes)} valueColor="text-warning" />
+        <KpiCard
           label="Progreso"
           value={`${pctCompletadas}%`}
-          sub="Tareas completadas"
-          tone="emerald"
-          progress={{ pct: pctCompletadas }}
+          valueColor={pctCompletadas >= 70 ? "text-success" : "text-fg"}
         />
       </div>
 
       <Card>
         <CardHeader title="Proyectos en curso" subtitle="Donde estas asignado actualmente" />
         <CardBody>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {(data.proyectosEnCurso ?? []).map((p, i) => (
               <div
                 key={i}
-                className="border border-slate-200 rounded-md p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors"
+                className="border border-border rounded px-3 py-2 hover:bg-surface2 transition-colors"
               >
-                <div className="w-9 h-9 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <Layers size={18} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-slate-900 truncate">{p}</div>
-                  <div className="text-xs text-slate-500">en curso</div>
-                </div>
+                <div className="text-[13px] font-medium text-fg truncate">{p}</div>
+                <div className="text-[11px] text-fg-muted mt-0.5">en curso</div>
               </div>
             ))}
             {(data.proyectosEnCurso ?? []).length === 0 && (
-              <div className="col-span-2 py-6 text-sm text-slate-500 text-center">
+              <div className="col-span-2 py-6 text-[13px] text-fg-muted text-center">
                 No estas asignado a ningun proyecto.
               </div>
             )}
@@ -289,96 +330,137 @@ function DashboardDev({ data }: { data: Dashboard }) {
   );
 }
 
-function DashboardDir({ data, kpis }: { data: Dashboard; kpis: Kpis | null }) {
+function DashboardDir({
+  data, kpis, historico, desde, hasta, onDesde, onHasta, errRango, onReset,
+}: {
+  data: Dashboard;
+  kpis: Kpis | null;
+  historico: Historico | null;
+  desde: string;
+  hasta: string;
+  onDesde: (s: string) => void;
+  onHasta: (s: string) => void;
+  errRango: string | null;
+  onReset: () => void;
+}) {
   const utiPct = Math.round((data.porcentajeUtilizacion ?? 0) * 100);
+
+  const sparkSeries = historico?.utilizacion?.length
+    ? historico.utilizacion.map((p) => Math.round(p.v * 100))
+    : undefined;
+
+  const deltaUtil = historico?.deltas?.porcentajeUtilizacion;
+  const deltaProy = historico?.deltas?.proyectosActivos;
 
   const rolesData = kpis?.recursosPorRol
     ? Object.entries(kpis.recursosPorRol).map(([name, value]) => ({ name, value }))
     : [];
+  const totalRecursos = rolesData.reduce((acc, r) => acc + r.value, 0);
+
   const estadosData = kpis?.proyectosPorEstado
     ? Object.entries(kpis.proyectosPorEstado).map(([name, value]) => ({ name, value }))
     : [];
+  const totalProyectos = estadosData.reduce((acc, e) => acc + e.value, 0);
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard
-          Icon={Briefcase}
+      <RangoFechas
+        desde={desde}
+        hasta={hasta}
+        onDesde={onDesde}
+        onHasta={onHasta}
+        onReset={onReset}
+        error={errRango}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <KpiCard
           label="Proyectos activos"
-          value={data.proyectosActivos ?? 0}
-          sub="En cartera global"
-          tone="indigo"
+          value={String(data.proyectosActivos ?? 0)}
+          delta={deltaProy != null ? { value: deltaProy } : undefined}
         />
-        <MetricCard
-          Icon={Gauge}
+        <KpiCard
           label="Utilizacion"
           value={`${utiPct}%`}
-          sub="Capacidad asignada"
-          tone="emerald"
-          progress={{ pct: utiPct }}
+          valueColor={utiPct >= 80 ? "text-warning" : "text-fg"}
+          sparkline={sparkSeries}
+          delta={deltaUtil != null ? { value: Math.round(deltaUtil * 100), suffix: "pp" } : undefined}
         />
-        <MetricCard
-          Icon={AlertOctagon}
+        <KpiCard
           label="Alertas globales"
-          value={data.alertasGlobales ?? 0}
-          sub="Requieren accion"
-          tone="rose"
+          value={String(data.alertasGlobales ?? 0)}
+          valueColor={(data.alertasGlobales ?? 0) > 0 ? "text-danger" : "text-fg"}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <EvolucionChart historico={historico} desde={desde} hasta={hasta} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Recursos por rol" subtitle="Distribucion de talento activo" />
           <CardBody>
             {rolesData.length === 0 ? (
-              <p className="text-sm text-slate-500">Cargando KPIs...</p>
+              <p className="text-[13px] text-fg-muted">Cargando KPIs...</p>
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie
-                    data={rolesData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={60}
-                    outerRadius={95}
-                    paddingAngle={2}
-                  >
-                    {rolesData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={32} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="flex items-center gap-6">
+                <div className="relative w-[200px] h-[200px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={rolesData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={62}
+                        outerRadius={92}
+                        paddingAngle={2}
+                        stroke="none"
+                      >
+                        {rolesData.map((r, i) => (
+                          <Cell key={i} fill={ROLE_COLORS[r.name] ?? FALLBACK_COLOR} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgb(var(--surface))",
+                          border: "1px solid rgb(var(--border))",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          color: "rgb(var(--fg))",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="font-mono text-xl text-fg leading-none">{totalRecursos}</span>
+                    <span className="text-[10px] uppercase tracking-wider text-fg-muted mt-1">recursos</span>
+                  </div>
+                </div>
+
+                <ul className="flex-1 space-y-1.5 min-w-0">
+                  {rolesData.map((r) => {
+                    const pct = totalRecursos === 0 ? 0 : Math.round((r.value / totalRecursos) * 100);
+                    return (
+                      <li key={r.name} className="flex items-center gap-2.5 text-[13px]">
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ background: ROLE_COLORS[r.name] ?? FALLBACK_COLOR }}
+                        />
+                        <span className="text-fg flex-1 truncate">{r.name}</span>
+                        <span className="font-mono text-fg-muted text-xs">{r.value}</span>
+                        <span className="font-mono text-fg-subtle text-xs w-10 text-right">{pct}%</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             )}
           </CardBody>
         </Card>
 
         <Card>
           <CardHeader title="Capacidad" subtitle="Horas semanales" />
-          <CardBody className="space-y-4">
-            <div>
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Total</div>
-              <div className="mt-1 text-3xl font-semibold text-slate-900">
-                {kpis?.capacidadSemanalTotalHoras ?? "—"}
-                <span className="text-base text-slate-500 font-normal"> h</span>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Promedio</div>
-              <div className="mt-1 text-2xl font-semibold text-slate-900">
-                {kpis?.promedioHorasPorRecurso?.toFixed(1) ?? "—"}
-                <span className="text-sm text-slate-500 font-normal"> h/recurso</span>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Recursos activos</div>
-              <div className="mt-1 flex items-center gap-2">
-                <Users size={16} className="text-slate-400" />
-                <span className="text-xl font-semibold text-slate-900">{kpis?.totalRecursosActivos ?? "—"}</span>
-              </div>
-            </div>
+          <CardBody>
+            <CapacidadRow kpis={kpis} />
           </CardBody>
         </Card>
       </div>
@@ -387,23 +469,256 @@ function DashboardDir({ data, kpis }: { data: Dashboard; kpis: Kpis | null }) {
         <CardHeader title="Proyectos por estado" subtitle="Cartera global agrupada" />
         <CardBody>
           {estadosData.length === 0 ? (
-            <p className="text-sm text-slate-500">Cargando KPIs...</p>
+            <p className="text-[13px] text-fg-muted">Cargando KPIs...</p>
           ) : (
-            <ResponsiveContainer width="100%" height={Math.max(180, estadosData.length * 50)}>
-              <BarChart data={estadosData} layout="vertical" margin={{ left: 20 }}>
-                <XAxis type="number" allowDecimals={false} stroke="#94a3b8" fontSize={12} />
-                <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={12} width={110} />
-                <Tooltip cursor={{ fill: "rgba(99,102,241,0.05)" }} />
-                <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-                  {estadosData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <StackedBar
+              segments={estadosData.map((e) => ({
+                key: e.name,
+                value: e.value,
+                color: ESTADO_COLORS[e.name] ?? FALLBACK_COLOR,
+              }))}
+              total={totalProyectos}
+            />
           )}
         </CardBody>
       </Card>
     </>
+  );
+}
+
+function RangoFechas({
+  desde, hasta, onDesde, onHasta, onReset, error,
+}: {
+  desde: string;
+  hasta: string;
+  onDesde: (s: string) => void;
+  onHasta: (s: string) => void;
+  onReset: () => void;
+  error: string | null;
+}) {
+  const dias = diasEntre(desde, hasta);
+  const dur = dias >= 0 ? `${dias + 1} dia${dias === 0 ? "" : "s"}` : "—";
+  return (
+    <div className="bg-surface border border-border rounded-md px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="text-[11px] uppercase tracking-wider text-fg-muted">Periodo</div>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-[12px] text-fg-muted">
+            <span>Desde</span>
+            <input
+              type="date"
+              value={desde}
+              max={hasta || hoyISO()}
+              onChange={(e) => onDesde(e.target.value)}
+              className="bg-bg border border-border rounded px-2 py-1 text-[12px] text-fg focus:outline-none focus:border-accent/60"
+            />
+          </label>
+          <label className="flex items-center gap-1.5 text-[12px] text-fg-muted">
+            <span>Hasta</span>
+            <input
+              type="date"
+              value={hasta}
+              min={desde}
+              max={hoyISO()}
+              onChange={(e) => onHasta(e.target.value)}
+              className="bg-bg border border-border rounded px-2 py-1 text-[12px] text-fg focus:outline-none focus:border-accent/60"
+            />
+          </label>
+        </div>
+        <span className="font-mono text-[11px] text-fg-subtle">{dur}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        {error && <span className="text-[12px] text-danger">{error}</span>}
+        <button
+          type="button"
+          onClick={onReset}
+          className="text-[12px] text-fg-muted hover:text-fg hover:bg-surface2 px-2.5 py-1 rounded transition-colors"
+        >
+          Restablecer
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EvolucionChart({
+  historico, desde, hasta,
+}: {
+  historico: Historico | null;
+  desde: string;
+  hasta: string;
+}) {
+  const dataChart = useMemo(() => {
+    if (!historico?.utilizacion?.length) return [];
+    return historico.utilizacion.map((p, i) => {
+      const proyectos = historico.proyectosActivos?.[i]?.v ?? 0;
+      const t = new Date(p.t);
+      return {
+        label: `${String(t.getDate()).padStart(2, "0")}/${String(t.getMonth() + 1).padStart(2, "0")}`,
+        utilizacion: Math.round(p.v * 100),
+        proyectos,
+      };
+    });
+  }, [historico]);
+
+  return (
+    <Card>
+      <CardHeader
+        title="Evolucion del periodo"
+        subtitle={`Utilizacion y proyectos activos · ${desde} → ${hasta}`}
+      />
+      <CardBody>
+        {dataChart.length === 0 ? (
+          <p className="text-[13px] text-fg-muted">
+            Sin snapshots en este rango. {historico?.status === "datos no disponibles" && "(servicio caido)"}
+          </p>
+        ) : (
+          <div className="w-full h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dataChart} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
+                <CartesianGrid stroke="rgb(var(--border))" strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fill: "rgb(var(--fg-muted))", fontSize: 11 }}
+                  axisLine={{ stroke: "rgb(var(--border))" }}
+                  tickLine={false}
+                  minTickGap={20}
+                />
+                <YAxis
+                  yAxisId="left"
+                  tick={{ fill: "rgb(var(--fg-muted))", fontSize: 11 }}
+                  axisLine={{ stroke: "rgb(var(--border))" }}
+                  tickLine={false}
+                  width={36}
+                  domain={[0, 100]}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fill: "rgb(var(--fg-muted))", fontSize: 11 }}
+                  axisLine={{ stroke: "rgb(var(--border))" }}
+                  tickLine={false}
+                  width={28}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "rgb(var(--surface))",
+                    border: "1px solid rgb(var(--border))",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    color: "rgb(var(--fg))",
+                  }}
+                  labelStyle={{ color: "rgb(var(--fg-muted))" }}
+                  formatter={(value: number, name: string) => {
+                    if (name === "utilizacion") return [`${value}%`, "Utilizacion"];
+                    return [value, "Proyectos activos"];
+                  }}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="utilizacion"
+                  stroke="rgb(var(--accent))"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 3 }}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="proyectos"
+                  stroke="rgb(var(--info))"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-4 mt-2 text-[11px] text-fg-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 rounded" style={{ background: "rgb(var(--accent))" }} />
+                Utilizacion (%)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 rounded" style={{ background: "rgb(var(--info))" }} />
+                Proyectos activos
+              </span>
+            </div>
+          </div>
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+function CapacidadRow({ kpis }: { kpis: Kpis | null }) {
+  const items = [
+    {
+      label: "Total",
+      value: kpis?.capacidadSemanalTotalHoras ?? "—",
+      suffix: "h",
+    },
+    {
+      label: "Promedio",
+      value: kpis?.promedioHorasPorRecurso != null ? kpis.promedioHorasPorRecurso.toFixed(1) : "—",
+      suffix: "h/recurso",
+    },
+    {
+      label: "Recursos activos",
+      value: kpis?.totalRecursosActivos ?? "—",
+      suffix: "",
+    },
+  ];
+  return (
+    <div className="grid grid-cols-3 divide-x divide-border">
+      {items.map((m, i) => (
+        <div key={m.label} className={i === 0 ? "pr-4" : "px-4"}>
+          <div className="text-[11px] uppercase tracking-wider text-fg-muted">{m.label}</div>
+          <div className="mt-1.5 flex items-baseline gap-1.5">
+            <span className="font-mono text-xl text-fg leading-none">{m.value}</span>
+            {m.suffix && <span className="text-[11px] text-fg-muted">{m.suffix}</span>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StackedBar({
+  segments, total,
+}: {
+  segments: { key: string; value: number; color: string }[];
+  total: number;
+}) {
+  if (total === 0) return <p className="text-[13px] text-fg-muted">Sin datos.</p>;
+  return (
+    <div className="space-y-3">
+      <div className="flex h-2 rounded overflow-hidden bg-surface2">
+        {segments.map((s) => {
+          const pct = (s.value / total) * 100;
+          return (
+            <div
+              key={s.key}
+              style={{ width: `${pct}%`, background: s.color }}
+              title={`${s.key}: ${s.value} (${pct.toFixed(1)}%)`}
+            />
+          );
+        })}
+      </div>
+      <ul className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+        {segments.map((s) => {
+          const pct = (s.value / total) * 100;
+          return (
+            <li key={s.key} className="flex items-center gap-2 text-[12px]">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
+              <span className="text-fg-muted flex-1 truncate">{s.key.replace(/_/g, " ").toLowerCase()}</span>
+              <span className="font-mono text-fg-subtle">{pct.toFixed(0)}%</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

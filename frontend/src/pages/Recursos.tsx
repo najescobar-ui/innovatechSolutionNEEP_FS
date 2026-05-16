@@ -8,64 +8,71 @@ import { ConfirmDialog, Field, Modal, SelectInput, TextArea, TextInput } from ".
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 
-type Proyecto = {
+type Recurso = {
   id: number;
   nombre: string;
-  descripcion: string | null;
-  estado: string;
-  fechaInicio: string | null;
-  fechaFinPlanificada: string | null;
-  responsableId: string | null;
+  email: string;
+  rol: string;
+  horasSemanales: number;
+  competencias: string | null;
+  activo: boolean;
 };
 
-type Resp = { status: string; items: Proyecto[] };
+type Resp = { status: string; items: Recurso[] };
 
-type Tono = "info" | "success" | "neutral" | "danger" | "warning";
+const ROLES = ["TODOS", "DEV", "QA", "DEVOPS", "DESIGNER", "PM"] as const;
+const ROLES_CREAR = ["DEV", "QA", "DEVOPS", "DESIGNER", "PM"];
 
-const ESTADOS: { value: string; label: string }[] = [
-  { value: "TODOS",         label: "Todos" },
-  { value: "PLANIFICACION", label: "Planificacion" },
-  { value: "EN_CURSO",      label: "En curso" },
-  { value: "COMPLETADO",    label: "Completado" },
-  { value: "CANCELADO",     label: "Cancelado" },
-];
-
-const ESTADOS_CREAR = ["PLANIFICACION", "EN_CURSO", "COMPLETADO", "CANCELADO"];
-
-const TONO_BADGE: Record<string, Tono> = {
-  PLANIFICACION: "info",
-  EN_CURSO: "success",
-  COMPLETADO: "neutral",
-  CANCELADO: "danger",
+const ROLE_VAR: Record<string, string> = {
+  DEV:      "var(--role-dev)",
+  QA:       "var(--role-qa)",
+  DEVOPS:   "var(--role-devops)",
+  DESIGNER: "var(--role-designer)",
+  PM:       "var(--role-pm)",
 };
 
-const fmt = new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "short", year: "numeric" });
-function formatFecha(iso: string | null) {
-  if (!iso) return "—";
-  return fmt.format(new Date(iso));
+function RolBadge({ rol }: { rol: string }) {
+  const v = ROLE_VAR[rol];
+  if (!v) return <Badge tone="neutral">{rol}</Badge>;
+  return (
+    <span
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium"
+      style={{ background: `rgb(${v} / 0.12)`, color: `rgb(${v})` }}
+    >
+      {rol}
+    </span>
+  );
 }
 
-export function Proyectos() {
+function iniciales(nombre: string) {
+  return nombre
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
+
+export function Recursos() {
   const { roles } = useAuth();
   const esDirector = roles.includes("DIR");
 
   const [data, setData] = useState<Resp | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [estado, setEstado] = useState("TODOS");
+  const [rol, setRol] = useState<string>("TODOS");
+  const [soloActivos, setSoloActivos] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
 
-  // edicion fila a fila
-  const [aEditar, setAEditar] = useState<Proyecto | null>(null);
+  const [aEditar, setAEditar] = useState<Recurso | null>(null);
 
-  // seleccion multiple para borrado en lote (solo DIR)
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set());
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [errBulk, setErrBulk] = useState<string | null>(null);
   const [borrandoBulk, setBorrandoBulk] = useState(false);
 
   const cargar = () => {
-    api.get<Resp>("/proyectos")
+    api.get<Resp>("/recursos")
       .then((r) => setData(r.data))
       .catch((e) => setErr(e.message ?? "error"));
   };
@@ -87,7 +94,7 @@ export function Proyectos() {
     setErrBulk(null);
     const ids = Array.from(seleccionados);
     const results = await Promise.allSettled(
-      ids.map((id) => api.delete(`/proyectos/${id}`)),
+      ids.map((id) => api.delete(`/recursos/${id}`)),
     );
     const fallos = results.filter((r) => r.status === "rejected").length;
     setBorrandoBulk(false);
@@ -104,21 +111,25 @@ export function Proyectos() {
   const filtrados = useMemo(() => {
     if (!data) return [];
     const txt = q.trim().toLowerCase();
-    return data.items.filter((p) => {
-      const matchTxt = !txt || p.nombre.toLowerCase().includes(txt) || (p.descripcion ?? "").toLowerCase().includes(txt);
-      const matchEstado = estado === "TODOS" || p.estado === estado;
-      return matchTxt && matchEstado;
+    return data.items.filter((r) => {
+      const matchTxt = !txt
+        || r.nombre.toLowerCase().includes(txt)
+        || r.email.toLowerCase().includes(txt)
+        || (r.competencias ?? "").toLowerCase().includes(txt);
+      const matchRol = rol === "TODOS" || r.rol === rol;
+      const matchActivo = !soloActivos || r.activo;
+      return matchTxt && matchRol && matchActivo;
     });
-  }, [data, q, estado]);
+  }, [data, q, rol, soloActivos]);
 
-  const todosVisiblesSeleccionados = filtrados.length > 0 && filtrados.every((p) => seleccionados.has(p.id));
-  const algunoVisibleSeleccionado = filtrados.some((p) => seleccionados.has(p.id));
+  const todosVisiblesSeleccionados = filtrados.length > 0 && filtrados.every((r) => seleccionados.has(r.id));
+  const algunoVisibleSeleccionado = filtrados.some((r) => seleccionados.has(r.id));
 
   function toggleTodos(checked: boolean) {
     setSeleccionados((prev) => {
       const next = new Set(prev);
-      if (checked) filtrados.forEach((p) => next.add(p.id));
-      else filtrados.forEach((p) => next.delete(p.id));
+      if (checked) filtrados.forEach((r) => next.add(r.id));
+      else filtrados.forEach((r) => next.delete(r.id));
       return next;
     });
   }
@@ -127,11 +138,11 @@ export function Proyectos() {
     <div className="space-y-4 max-w-[1200px]">
       <header className="flex items-end justify-between gap-4">
         <div>
-          <div className="text-[11px] uppercase tracking-wider text-fg-muted">Cartera</div>
+          <div className="text-[11px] uppercase tracking-wider text-fg-muted">Equipo</div>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="font-mono text-lg text-fg">{data ? data.items.length : "—"}</span>
             <span className="text-[13px] text-fg-muted">
-              proyectos
+              recursos
               {data && filtrados.length !== data.items.length && ` · ${filtrados.length} visibles`}
             </span>
             {data?.status === "datos no disponibles" && (
@@ -153,7 +164,7 @@ export function Proyectos() {
           )}
           <Button variant="primary" size="md" onClick={() => setModalAbierto(true)}>
             <Plus size={14} />
-            <span>Nuevo proyecto</span>
+            <span>Nuevo recurso</span>
           </Button>
         </div>
       </header>
@@ -166,27 +177,40 @@ export function Proyectos() {
               type="text"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar por nombre o descripcion"
+              placeholder="Buscar por nombre, email o skill"
               className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-bg border border-border rounded text-fg placeholder:text-fg-subtle focus:outline-none focus:border-accent/60 transition-colors"
             />
           </div>
-          <div className="flex flex-wrap gap-1">
-            {ESTADOS.map((e) => {
-              const active = estado === e.value;
+
+          <div className="flex flex-wrap items-center gap-1">
+            {ROLES.map((r) => {
+              const active = rol === r;
               return (
                 <button
-                  key={e.value}
-                  onClick={() => setEstado(e.value)}
+                  key={r}
+                  onClick={() => setRol(r)}
                   className={`text-[12px] px-2.5 py-1 rounded transition-colors ${
                     active
                       ? "bg-surface2 text-fg"
                       : "text-fg-muted hover:bg-surface2 hover:text-fg"
                   }`}
                 >
-                  {e.label}
+                  {r === "TODOS" ? "Todos" : r}
                 </button>
               );
             })}
+            <span className="mx-1 h-4 w-px bg-border" />
+            <button
+              onClick={() => setSoloActivos((v) => !v)}
+              className={`text-[12px] px-2.5 py-1 rounded transition-colors ${
+                soloActivos
+                  ? "bg-surface2 text-fg"
+                  : "text-fg-muted hover:bg-surface2 hover:text-fg"
+              }`}
+              title="Filtrar solo activos"
+            >
+              Solo activos
+            </button>
           </div>
         </div>
 
@@ -205,11 +229,11 @@ export function Proyectos() {
                   </th>
                 )}
                 <th className="text-left font-medium px-4 py-2 w-12">#</th>
-                <th className="text-left font-medium px-4 py-2">Proyecto</th>
-                <th className="text-left font-medium px-4 py-2 w-36">Estado</th>
-                <th className="text-left font-medium px-4 py-2 w-28">Inicio</th>
-                <th className="text-left font-medium px-4 py-2 w-28">Fin planif.</th>
-                <th className="text-left font-medium px-4 py-2 w-32">Responsable</th>
+                <th className="text-left font-medium px-4 py-2">Persona</th>
+                <th className="text-left font-medium px-4 py-2 w-28">Rol</th>
+                <th className="text-left font-medium px-4 py-2 w-20">Hrs/sem</th>
+                <th className="text-left font-medium px-4 py-2">Competencias</th>
+                <th className="text-left font-medium px-4 py-2 w-20">Estado</th>
                 <th className="w-10" />
                 {esDirector && <th className="w-24" />}
               </tr>
@@ -232,49 +256,52 @@ export function Proyectos() {
               {data && filtrados.length === 0 && (
                 <tr>
                   <td colSpan={esDirector ? 9 : 7} className="px-4 py-6 text-center text-fg-muted">
-                    No hay proyectos con esos filtros.
+                    No hay recursos con esos filtros.
                   </td>
                 </tr>
               )}
-              {filtrados.map((p) => (
+              {filtrados.map((r) => (
                 <tr
-                  key={p.id}
+                  key={r.id}
                   className={`group border-b border-border last:border-0 hover:bg-surface2 transition-colors ${
-                    seleccionados.has(p.id) ? "bg-surface2" : ""
-                  }`}
+                    !r.activo ? "opacity-60" : ""
+                  } ${seleccionados.has(r.id) ? "bg-surface2" : ""}`}
                 >
                   {esDirector && (
                     <td className="px-3 py-2">
                       <Checkbox
-                        checked={seleccionados.has(p.id)}
-                        onChange={(c) => toggleUno(p.id, c)}
-                        ariaLabel={`Seleccionar ${p.nombre}`}
+                        checked={seleccionados.has(r.id)}
+                        onChange={(c) => toggleUno(r.id, c)}
+                        ariaLabel={`Seleccionar ${r.nombre}`}
                       />
                     </td>
                   )}
-                  <td className="px-4 py-2 font-mono text-fg-subtle">{p.id}</td>
+                  <td className="px-4 py-2 font-mono text-fg-subtle">{r.id}</td>
                   <td className="px-4 py-2">
-                    <div className="text-fg">{p.nombre}</div>
-                    {p.descripcion && (
-                      <div className="text-[11px] text-fg-muted mt-0.5 line-clamp-1">{p.descripcion}</div>
-                    )}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-surface2 text-fg text-[11px] font-semibold flex items-center justify-center shrink-0">
+                        {iniciales(r.nombre)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-fg truncate">{r.nombre}</div>
+                        <div className="text-[11px] text-fg-muted truncate">{r.email}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-2">
-                    <Badge tone={TONO_BADGE[p.estado] ?? "neutral"}>
-                      {p.estado.replace(/_/g, " ").toLowerCase()}
-                    </Badge>
+                    <RolBadge rol={r.rol} />
                   </td>
-                  <td className="px-4 py-2 text-fg-muted font-mono text-[12px]">
-                    {formatFecha(p.fechaInicio)}
-                  </td>
-                  <td className="px-4 py-2 text-fg-muted font-mono text-[12px]">
-                    {formatFecha(p.fechaFinPlanificada)}
+                  <td className="px-4 py-2 font-mono text-fg-muted text-[12px]">
+                    {r.horasSemanales}h
                   </td>
                   <td className="px-4 py-2 text-fg-muted">
-                    {p.responsableId ? (
-                      <span className="font-mono text-[12px]">{p.responsableId}</span>
+                    <div className="line-clamp-1">{r.competencias || "—"}</div>
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.activo ? (
+                      <Badge tone="success">activo</Badge>
                     ) : (
-                      <span className="text-fg-subtle">—</span>
+                      <Badge tone="neutral">inactivo</Badge>
                     )}
                   </td>
                   <td className="px-2 py-2 text-right">
@@ -292,29 +319,44 @@ export function Proyectos() {
                         )}
                       >
                         {(close) => (
-                          <DropdownItem
-                            icon={<Copy size={13} />}
-                            onClick={() => {
-                              navigator.clipboard.writeText(String(p.id));
-                              close();
-                            }}
-                          >
-                            Copiar ID
-                          </DropdownItem>
+                          <>
+                            <DropdownItem
+                              icon={<Copy size={13} />}
+                              onClick={() => {
+                                navigator.clipboard.writeText(r.email);
+                                close();
+                              }}
+                            >
+                              Copiar email
+                            </DropdownItem>
+                            <DropdownItem
+                              icon={<Copy size={13} />}
+                              onClick={() => {
+                                navigator.clipboard.writeText(String(r.id));
+                                close();
+                              }}
+                            >
+                              Copiar ID
+                            </DropdownItem>
+                          </>
                         )}
                       </Dropdown>
                     </div>
                   </td>
                   {esDirector && (
                     <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setAEditar(p)}
-                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[12px] bg-info/15 text-info hover:bg-info/25 transition-colors"
-                      >
-                        <Pencil size={12} />
-                        Editar
-                      </button>
+                      {r.activo ? (
+                        <button
+                          type="button"
+                          onClick={() => setAEditar(r)}
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[12px] bg-info/15 text-info hover:bg-info/25 transition-colors"
+                        >
+                          <Pencil size={12} />
+                          Editar
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-fg-subtle">—</span>
+                      )}
                     </td>
                   )}
                 </tr>
@@ -324,7 +366,7 @@ export function Proyectos() {
         </div>
       </div>
 
-      <NuevoProyectoModal
+      <NuevoRecursoModal
         open={modalAbierto}
         onClose={() => setModalAbierto(false)}
         onCreado={() => {
@@ -333,8 +375,8 @@ export function Proyectos() {
         }}
       />
 
-      <EditarProyectoModal
-        proyecto={aEditar}
+      <EditarRecursoModal
+        recurso={aEditar}
         onClose={() => setAEditar(null)}
         onGuardado={() => {
           setAEditar(null);
@@ -346,14 +388,14 @@ export function Proyectos() {
         open={confirmBulk}
         onClose={() => { setConfirmBulk(false); setErrBulk(null); }}
         onConfirm={confirmarBorrarBulk}
-        title="Borrar varios proyectos"
+        title="Borrar varios recursos"
         confirmText={`Borrar ${seleccionados.size}`}
         busy={borrandoBulk}
         error={errBulk}
         message={
           <>
             Vas a eliminar definitivamente <strong className="text-fg">{seleccionados.size}</strong>{" "}
-            {seleccionados.size === 1 ? "proyecto" : "proyectos"}. Esta accion no se puede deshacer.
+            {seleccionados.size === 1 ? "recurso" : "recursos"}. Esta accion no se puede deshacer.
           </>
         }
       />
@@ -361,7 +403,7 @@ export function Proyectos() {
   );
 }
 
-function NuevoProyectoModal({
+function NuevoRecursoModal({
   open, onClose, onCreado,
 }: {
   open: boolean;
@@ -369,42 +411,44 @@ function NuevoProyectoModal({
   onCreado: () => void;
 }) {
   const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [estado, setEstado] = useState("PLANIFICACION");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
-  const [responsableId, setResponsableId] = useState("");
+  const [email, setEmail] = useState("");
+  const [rol, setRol] = useState("DEV");
+  const [horas, setHoras] = useState("40");
+  const [competencias, setCompetencias] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setNombre("");
-    setDescripcion("");
-    setEstado("PLANIFICACION");
-    setFechaInicio("");
-    setFechaFin("");
-    setResponsableId("");
+    setEmail("");
+    setRol("DEV");
+    setHoras("40");
+    setCompetencias("");
     setErr(null);
     setEnviando(false);
   }, [open]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nombre.trim()) {
-      setErr("El nombre es obligatorio.");
+    if (!nombre.trim() || !email.trim()) {
+      setErr("Nombre y email son obligatorios.");
+      return;
+    }
+    const hrs = parseInt(horas, 10);
+    if (Number.isNaN(hrs) || hrs <= 0) {
+      setErr("Horas semanales debe ser un numero positivo.");
       return;
     }
     setEnviando(true);
     setErr(null);
     try {
-      await api.post("/proyectos", {
+      await api.post("/recursos", {
         nombre: nombre.trim(),
-        descripcion: descripcion.trim() || null,
-        estado,
-        fechaInicio: fechaInicio || null,
-        fechaFinPlanificada: fechaFin || null,
-        responsableId: responsableId.trim() || null,
+        email: email.trim(),
+        rol,
+        horasSemanales: hrs,
+        competencias: competencias.trim() || null,
       });
       onCreado();
     } catch (e: any) {
@@ -417,7 +461,7 @@ function NuevoProyectoModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Nuevo proyecto"
+      title="Nuevo recurso"
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={enviando}>Cancelar</Button>
@@ -429,34 +473,31 @@ function NuevoProyectoModal({
     >
       <form onSubmit={submit}>
         <Field label="Nombre">
-          <TextInput value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Migracion Acme" autoFocus />
+          <TextInput value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre completo" autoFocus />
         </Field>
-        <Field label="Descripcion">
-          <TextArea
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            rows={2}
-            placeholder="Breve descripcion"
-          />
+        <Field label="Email">
+          <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="persona@innovatech.cl" />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Estado">
-            <SelectInput value={estado} onChange={(e) => setEstado(e.target.value)}>
-              {ESTADOS_CREAR.map((s) => (
-                <option key={s} value={s}>{s.replace(/_/g, " ").toLowerCase()}</option>
+          <Field label="Rol">
+            <SelectInput value={rol} onChange={(e) => setRol(e.target.value)}>
+              {ROLES_CREAR.map((r) => (
+                <option key={r} value={r}>{r}</option>
               ))}
             </SelectInput>
           </Field>
-          <Field label="Responsable ID">
-            <TextInput value={responsableId} onChange={(e) => setResponsableId(e.target.value)} placeholder="opcional" />
-          </Field>
-          <Field label="Fecha inicio">
-            <TextInput type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-          </Field>
-          <Field label="Fin planificado">
-            <TextInput type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <Field label="Horas/semana">
+            <TextInput type="number" min={1} max={60} value={horas} onChange={(e) => setHoras(e.target.value)} />
           </Field>
         </div>
+        <Field label="Competencias">
+          <TextArea
+            value={competencias}
+            onChange={(e) => setCompetencias(e.target.value)}
+            rows={2}
+            placeholder="Ej: Java, Spring, Postgres"
+          />
+        </Field>
         {err && (
           <p className="mt-3 text-[12px] text-danger">{err}</p>
         )}
@@ -465,35 +506,28 @@ function NuevoProyectoModal({
   );
 }
 
-function EditarProyectoModal({
-  proyecto, onClose, onGuardado,
+function EditarRecursoModal({
+  recurso, onClose, onGuardado,
 }: {
-  proyecto: Proyecto | null;
+  recurso: Recurso | null;
   onClose: () => void;
   onGuardado: () => void;
 }) {
-  const [estado, setEstado] = useState("PLANIFICACION");
-  const [responsableId, setResponsableId] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!proyecto) return;
-    setEstado(proyecto.estado);
-    setResponsableId(proyecto.responsableId ?? "");
+    if (!recurso) return;
     setErr(null);
     setEnviando(false);
-  }, [proyecto]);
+  }, [recurso]);
 
-  async function submit() {
-    if (!proyecto) return;
+  async function marcarInactivo() {
+    if (!recurso) return;
     setEnviando(true);
     setErr(null);
     try {
-      await api.patch(`/proyectos/${proyecto.id}`, {
-        estado,
-        responsableId: responsableId.trim(),
-      });
+      await api.patch(`/recursos/${recurso.id}`, { activo: false });
       onGuardado();
     } catch (e: any) {
       setErr(e?.response?.data?.message ?? e?.message ?? "no se pudo guardar");
@@ -503,32 +537,23 @@ function EditarProyectoModal({
 
   return (
     <Modal
-      open={!!proyecto}
+      open={!!recurso}
       onClose={onClose}
-      title={proyecto ? `Editar "${proyecto.nombre}"` : "Editar"}
+      title={recurso ? `Editar ${recurso.nombre}` : "Editar recurso"}
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={enviando}>Cancelar</Button>
-          <Button variant="primary" onClick={submit} disabled={enviando}>
-            {enviando ? "Guardando..." : "Guardar"}
+          <Button variant="primary" onClick={marcarInactivo} disabled={enviando}>
+            {enviando ? "Guardando..." : "Marcar como inactivo"}
           </Button>
         </>
       }
     >
-      <Field label="Estado">
-        <SelectInput value={estado} onChange={(e) => setEstado(e.target.value)}>
-          {ESTADOS_CREAR.map((s) => (
-            <option key={s} value={s}>{s.replace(/_/g, " ").toLowerCase()}</option>
-          ))}
-        </SelectInput>
-      </Field>
-      <Field label="Responsable ID">
-        <TextInput
-          value={responsableId}
-          onChange={(e) => setResponsableId(e.target.value)}
-          placeholder="vacio para quitar responsable"
-        />
-      </Field>
+      <p className="text-[13px] text-fg-muted">
+        Vas a marcar a <strong className="text-fg">{recurso?.nombre}</strong> como{" "}
+        <strong className="text-fg">inactivo</strong>. El recurso seguira en la BDD pero no contara
+        para los KPIs ni aparecera en filtros de "solo activos".
+      </p>
       {err && <p className="mt-3 text-[12px] text-danger">{err}</p>}
     </Modal>
   );
