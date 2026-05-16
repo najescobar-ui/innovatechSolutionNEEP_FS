@@ -4,6 +4,27 @@ server:
 spring:
   application:
     name: ms-analitica
+  datasource:
+    url: jdbc:postgresql://${DB_ANALITICA_HOST:db-analitica}:${DB_ANALITICA_PORT:5432}/${DB_ANALITICA_NAME:analitica}
+    username: ${DB_ANALITICA_USER:analitica_user}
+    password: ${DB_ANALITICA_PASSWORD:analitica_dev}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        format_sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# snapshots: cadencia configurable. En dev, cada 5 min permite ver evolucion rapido.
+innovatech:
+  snapshots:
+    enabled: ${SNAPSHOTS_ENABLED:true}
+    cron: ${SNAPSHOTS_CRON:0 */5 * * * *}
+    backfill-weeks: ${SNAPSHOTS_BACKFILL_WEEKS:12}
 
 eureka:
   client:

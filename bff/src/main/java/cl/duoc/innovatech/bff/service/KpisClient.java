@@ -24,4 +24,16 @@ public class KpisClient {
                 .retrieve()
                 .body(new ParameterizedTypeReference<Map<String, Object>>() {});
     }
+
+    public Map<String, Object> historico(int puntos, String desde, String hasta) {
+        return http.get()
+                .uri(uri -> {
+                    var b = uri.path("/analitica/kpis/historico").queryParam("puntos", puntos);
+                    if (desde != null && !desde.isBlank()) b.queryParam("desde", desde);
+                    if (hasta != null && !hasta.isBlank()) b.queryParam("hasta", hasta);
+                    return b.build();
+                })
+                .retrieve()
+                .body(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
 }

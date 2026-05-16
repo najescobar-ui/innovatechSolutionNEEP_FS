@@ -22,6 +22,9 @@ public class KpiService {
     private static final Set<String> ACTIVOS = Set.of("PLANIFICACION", "EN_CURSO");
     private static final Set<String> TERMINADOS = Set.of("COMPLETADO", "CANCELADO");
 
+    // Tope teorico para calcular utilizacion: 40h/semana es la jornada completa.
+    private static final double HORAS_SEMANA_FULL = 40.0;
+
     private final ProyectosClient proyectos;
     private final RecursosClient recursos;
 
@@ -58,6 +61,11 @@ public class KpiService {
         int capacidad = recursosActivos.stream().mapToInt(RecursoView::horasSemanales).sum();
         double promedio = totalActivos == 0 ? 0.0 : (double) capacidad / totalActivos;
 
+        // Utilizacion proxy: promedio de horas comprometidas vs jornada full (40h).
+        // Cuando exista una tabla de asignaciones reales se reemplaza por la formula
+        // "horas asignadas / capacidad total".
+        double utilizacion = totalActivos == 0 ? 0.0 : Math.min(1.0, promedio / HORAS_SEMANA_FULL);
+
         Map<String, Long> porRol = recursosActivos.stream()
                 .collect(Collectors.groupingBy(RecursoView::rol, Collectors.counting()));
         Map<String, Long> porEstado = ps.stream()
@@ -70,6 +78,7 @@ public class KpiService {
                 totalActivos,
                 capacidad,
                 Math.round(promedio * 100.0) / 100.0,
+                Math.round(utilizacion * 10000.0) / 10000.0,
                 porRol,
                 porEstado
         );
