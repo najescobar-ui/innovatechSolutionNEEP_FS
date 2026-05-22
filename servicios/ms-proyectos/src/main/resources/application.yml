@@ -5,7 +5,7 @@ spring:
   application:
     name: ms-proyectos
   datasource:
-    url: jdbc:postgresql://${DB_PROYECTOS_HOST:db-proyectos}:5432/${DB_PROYECTOS_NAME:proyectos}
+    url: jdbc:postgresql://${DB_PROYECTOS_HOST:db-proyectos}:${DB_PROYECTOS_PORT:5432}/${DB_PROYECTOS_NAME:proyectos}
     username: ${DB_PROYECTOS_USER:proyectos_user}
     password: ${DB_PROYECTOS_PASSWORD:proyectos_dev}
   jpa:
