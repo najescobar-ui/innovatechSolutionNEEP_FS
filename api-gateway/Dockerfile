@@ -24,6 +24,11 @@ FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=build /build/api-gateway/target/api-gateway.jar app.jar
 
+# Usuario no root (buena práctica de seguridad: el contenedor no corre como root)
+RUN groupadd --system spring && useradd --system --gid spring spring \
+    && chown -R spring:spring /app
+USER spring
+
 EXPOSE 9000
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
