@@ -1,0 +1,100 @@
+name: CI/CD - Build & Push a Docker Hub
+
+# ---------------------------------------------------------------------------
+# Estrategia:
+#   - push a main      -> construye TODAS las imagenes y las publica (latest + sha)
+#   - tag vX.Y.Z       -> ademas publica tags semanticos (1.2.3, 1.2, 1)
+#   - pull_request     -> SOLO construye (valida que compila), NO publica
+#   - manual           -> workflow_dispatch para correrlo a mano
+#
+# Las 7 imagenes propias se construyen con una matriz para evitar duplicar el job.
+# Credenciales: nunca hardcodeadas. Se leen de:
+#   - vars.DOCKERHUB_USERNAME  (Repository variable, el namespace en Docker Hub)
+#   - secrets.DOCKERHUB_TOKEN  (Access Token de Docker Hub, NO la password)
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancela ejecuciones viejas si llega un push nuevo al mismo ref (ahorra minutos).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false # si una imagen falla, las demas igual terminan
+      matrix:
+        include:
+          - image: innovatech-eureka-server
+            context: .
+            dockerfile: eureka-server/Dockerfile
+          - image: innovatech-ms-proyectos
+            context: .
+            dockerfile: servicios/ms-proyectos/Dockerfile
+          - image: innovatech-ms-recursos
+            context: .
+            dockerfile: servicios/ms-recursos/Dockerfile
+          - image: innovatech-ms-analitica
+            context: .
+            dockerfile: servicios/ms-analitica/Dockerfile
+          - image: innovatech-bff
+            context: .
+            dockerfile: bff/Dockerfile
+          - image: innovatech-api-gateway
+            context: .
+            dockerfile: api-gateway/Dockerfile
+          - image: innovatech-frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # Solo nos logueamos cuando NO es un pull_request (los PR no publican).
+      - name: Login a Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Genera tags y labels automaticamente segun el contexto de git.
+      - name: Metadatos (tags + labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build & Push - ${{ matrix.image }}
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          # En PR solo construye (push=false); en main/tag publica.
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache de capas via GitHub Actions: acelera muchisimo los rebuilds.
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}

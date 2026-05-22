@@ -1,0 +1,243 @@
+# Stack de DESPLIEGUE de Innovatech Solutions.
+#
+# A diferencia de docker-compose.yml (que CONSTRUYE las imagenes con build:),
+# este archivo solo CONSUME imagenes ya publicadas en Docker Hub. Es el patron
+# "build once, deploy anywhere": el pipeline de CI construye y versiona una vez,
+# y cualquier entorno despliega ese mismo artefacto inmutable sin recompilar.
+#
+# Uso:
+#   export DOCKERHUB_USERNAME=tu_usuario
+#   export TAG=latest                 # o sha-abc1234, o 1.2.3
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Variables (con defaults dev embebidos):
+#   DOCKERHUB_USERNAME  namespace de Docker Hub (obligatorio)
+#   TAG                 version de imagen a desplegar (default: latest)
+
+networks:
+  innovatech-net:
+    name: innovatech-net
+    driver: bridge
+
+volumes:
+  pgdata-proyectos: { name: pgdata-proyectos }
+  pgdata-recursos: { name: pgdata-recursos }
+  pgdata-analitica: { name: pgdata-analitica }
+  pgdata-keycloak: { name: pgdata-keycloak }
+
+services:
+  # ---- Service Discovery ----
+  eureka-server:
+    image: ${DOCKERHUB_USERNAME}/innovatech-eureka-server:${TAG:-latest}
+    container_name: eureka-server
+    networks: [innovatech-net]
+    ports: ["8761:8761"]
+    restart: unless-stopped
+
+  # ---- Auth ----
+  db-keycloak:
+    image: postgres:16
+    container_name: db-keycloak
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME:-keycloak}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD:-keycloak_dev}
+    volumes:
+      - pgdata-keycloak:/var/lib/postgresql/data
+    ports: ["5435:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USERNAME:-keycloak} -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    networks: [innovatech-net]
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db-keycloak:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME:-keycloak}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD:-keycloak_dev}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports: ["8080:8080"]
+    depends_on:
+      db-keycloak:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---- BD por microservicio ----
+  db-proyectos:
+    image: postgres:16
+    container_name: db-proyectos
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: ${DB_PROYECTOS_NAME:-proyectos}
+      POSTGRES_USER: ${DB_PROYECTOS_USER:-proyectos_user}
+      POSTGRES_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+    volumes:
+      - pgdata-proyectos:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_PROYECTOS_USER:-proyectos_user} -d ${DB_PROYECTOS_NAME:-proyectos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  db-recursos:
+    image: postgres:16
+    container_name: db-recursos
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: ${DB_RECURSOS_NAME:-recursos}
+      POSTGRES_USER: ${DB_RECURSOS_USER:-recursos_user}
+      POSTGRES_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+    volumes:
+      - pgdata-recursos:/var/lib/postgresql/data
+    ports: ["5433:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_RECURSOS_USER:-recursos_user} -d ${DB_RECURSOS_NAME:-recursos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  db-analitica:
+    image: postgres:16
+    container_name: db-analitica
+    networks: [innovatech-net]
+    environment:
+      POSTGRES_DB: ${DB_ANALITICA_NAME:-analitica}
+      POSTGRES_USER: ${DB_ANALITICA_USER:-analitica_user}
+      POSTGRES_PASSWORD: ${DB_ANALITICA_PASSWORD:-analitica_dev}
+    volumes:
+      - pgdata-analitica:/var/lib/postgresql/data
+    ports: ["5434:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ANALITICA_USER:-analitica_user} -d ${DB_ANALITICA_NAME:-analitica}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---- Microservicios de negocio ----
+  ms-proyectos:
+    image: ${DOCKERHUB_USERNAME}/innovatech-ms-proyectos:${TAG:-latest}
+    container_name: ms-proyectos
+    networks: [innovatech-net]
+    ports: ["8081:8081"]
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      DB_PROYECTOS_HOST: db-proyectos
+      DB_PROYECTOS_NAME: ${DB_PROYECTOS_NAME:-proyectos}
+      DB_PROYECTOS_USER: ${DB_PROYECTOS_USER:-proyectos_user}
+      DB_PROYECTOS_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+    depends_on:
+      eureka-server:
+        condition: service_started
+      db-proyectos:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ms-recursos:
+    image: ${DOCKERHUB_USERNAME}/innovatech-ms-recursos:${TAG:-latest}
+    container_name: ms-recursos
+    networks: [innovatech-net]
+    ports: ["8082:8082"]
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      DB_RECURSOS_HOST: db-recursos
+      DB_RECURSOS_NAME: ${DB_RECURSOS_NAME:-recursos}
+      DB_RECURSOS_USER: ${DB_RECURSOS_USER:-recursos_user}
+      DB_RECURSOS_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+    depends_on:
+      eureka-server:
+        condition: service_started
+      db-recursos:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ms-analitica:
+    image: ${DOCKERHUB_USERNAME}/innovatech-ms-analitica:${TAG:-latest}
+    container_name: ms-analitica
+    networks: [innovatech-net]
+    ports: ["8083:8083"]
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      DB_ANALITICA_HOST: db-analitica
+      DB_ANALITICA_NAME: ${DB_ANALITICA_NAME:-analitica}
+      DB_ANALITICA_USER: ${DB_ANALITICA_USER:-analitica_user}
+      DB_ANALITICA_PASSWORD: ${DB_ANALITICA_PASSWORD:-analitica_dev}
+      SNAPSHOTS_ENABLED: ${SNAPSHOTS_ENABLED:-true}
+      SNAPSHOTS_CRON: ${SNAPSHOTS_CRON:-0 */5 * * * *}
+      SNAPSHOTS_BACKFILL_WEEKS: ${SNAPSHOTS_BACKFILL_WEEKS:-12}
+    depends_on:
+      eureka-server:
+        condition: service_started
+      db-analitica:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---- BFF ----
+  bff:
+    image: ${DOCKERHUB_USERNAME}/innovatech-bff:${TAG:-latest}
+    container_name: bff
+    networks: [innovatech-net]
+    ports: ["8084:8084"]
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+    restart: unless-stopped
+
+  # ---- API Gateway ----
+  api-gateway:
+    image: ${DOCKERHUB_USERNAME}/innovatech-api-gateway:${TAG:-latest}
+    container_name: api-gateway
+    networks: [innovatech-net]
+    ports: ["9000:9000"]
+    environment:
+      EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+    restart: unless-stopped
+
+  # ---- Frontend ----
+  # OJO: las VITE_* se hornean en build-time dentro de la imagen. La imagen
+  # publicada ya trae los defaults (localhost). Si necesitas otros valores
+  # para el entorno destino, hay que reconstruir con esos build-args.
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/innovatech-frontend:${TAG:-latest}
+    container_name: frontend
+    networks: [innovatech-net]
+    ports: ["3000:80"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      api-gateway:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    restart: unless-stopped
