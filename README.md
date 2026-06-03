@@ -59,6 +59,45 @@ Toda la comunicación interna ocurre sobre la red Docker `innovatech-net`.
 
 > **Pendientes de orquestación** (placeholders comentados en `docker-compose.yml`): MailHog (notificaciones SMTP dev), Prometheus 2.51 y Grafana 10.4 para observabilidad. Los servicios Spring ya exponen `/actuator/prometheus`, falta solo descomentar el bloque y proveer la config.
 
+## Vista General (Alto Nivel)
+
+Diagrama de máximo nivel: solo el flujo entre componentes y los tres microservicios de dominio, cada uno con su propia base de datos (patrón *Database per Service*). Sin versiones ni puertos.
+
+```mermaid
+graph TD
+    FE[Frontend]
+    GW[API Gateway]
+    KC[Keycloak]
+    BFF[BFF]
+    MS1[ms-proyectos]
+    MS2[ms-recursos]
+    MS3[ms-analitica]
+    DB1[(PostgreSQL)]
+    DB2[(PostgreSQL)]
+    DB3[(PostgreSQL)]
+
+    FE --> GW
+    GW <--> KC
+    GW --> BFF
+    BFF --> MS1
+    BFF --> MS2
+    BFF --> MS3
+    MS1 --> DB1
+    MS2 --> DB2
+    MS3 --> DB3
+
+    style FE fill:#61DAFB,color:#000
+    style KC fill:#4D4D4D,color:#fff
+    style GW fill:#6DB33F,color:#fff
+    style BFF fill:#6DB33F,color:#fff
+    style MS1 fill:#6DB33F,color:#fff
+    style MS2 fill:#6DB33F,color:#fff
+    style MS3 fill:#6DB33F,color:#fff
+    style DB1 fill:#336791,color:#fff
+    style DB2 fill:#336791,color:#fff
+    style DB3 fill:#336791,color:#fff
+```
+
 ## Arquitectura General
 
 ```mermaid
