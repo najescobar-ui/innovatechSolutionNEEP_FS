@@ -5,7 +5,7 @@ spring:
   application:
     name: ms-resources
   datasource:
-    url: jdbc:postgresql://${DB_RESOURCES_HOST:db-resources}:5432/${DB_RESOURCES_NAME:resources}
+    url: jdbc:postgresql://${DB_RESOURCES_HOST:db-resources}:${DB_RESOURCES_PORT:5432}/${DB_RESOURCES_NAME:resources}
     username: ${DB_RESOURCES_USER:resources_user}
     password: ${DB_RESOURCES_PASSWORD:resources_dev}
   jpa:

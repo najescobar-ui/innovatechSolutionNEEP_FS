@@ -24,7 +24,7 @@ ENV VITE_API_BASE=${VITE_API_BASE} \
 RUN npm run build
 
 # ---- runtime ----
-FROM nginx:alpine
+FROM nginxinc/nginx-unprivileged:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /build/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080

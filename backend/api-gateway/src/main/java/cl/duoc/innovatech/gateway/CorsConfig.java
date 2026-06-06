@@ -1,5 +1,6 @@
 package cl.duoc.innovatech.gateway;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -14,10 +15,15 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    // Orígenes permitidos, configurables por entorno (CORS_ALLOWED_ORIGINS).
+    // Default: localhost para desarrollo. En despliegue se inyecta la IP/dominio del frontend.
+    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:3000}")
+    private List<String> allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         var cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(List.of("http://localhost:3000"));
+        cfg.setAllowedOrigins(allowedOrigins);
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         cfg.setExposedHeaders(List.of("Location"));
