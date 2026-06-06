@@ -44,23 +44,23 @@ jobs:
       matrix:
         include:
           - image: innovatech-eureka-server
-            context: .
-            dockerfile: eureka-server/Dockerfile
-          - image: innovatech-ms-proyectos
-            context: .
-            dockerfile: servicios/ms-proyectos/Dockerfile
-          - image: innovatech-ms-recursos
-            context: .
-            dockerfile: servicios/ms-recursos/Dockerfile
-          - image: innovatech-ms-analitica
-            context: .
-            dockerfile: servicios/ms-analitica/Dockerfile
+            context: ./backend
+            dockerfile: backend/eureka-server/Dockerfile
+          - image: innovatech-ms-projects
+            context: ./backend
+            dockerfile: backend/services/ms-projects/Dockerfile
+          - image: innovatech-ms-resources
+            context: ./backend
+            dockerfile: backend/services/ms-resources/Dockerfile
+          - image: innovatech-ms-analytics
+            context: ./backend
+            dockerfile: backend/services/ms-analytics/Dockerfile
           - image: innovatech-bff
-            context: .
-            dockerfile: bff/Dockerfile
+            context: ./backend
+            dockerfile: backend/bff/Dockerfile
           - image: innovatech-api-gateway
-            context: .
-            dockerfile: api-gateway/Dockerfile
+            context: ./backend
+            dockerfile: backend/api-gateway/Dockerfile
           - image: innovatech-frontend
             context: ./frontend
             dockerfile: ./frontend/Dockerfile

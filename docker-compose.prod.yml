@@ -21,9 +21,9 @@ networks:
     driver: bridge
 
 volumes:
-  pgdata-proyectos: { name: pgdata-proyectos }
-  pgdata-recursos: { name: pgdata-recursos }
-  pgdata-analitica: { name: pgdata-analitica }
+  pgdata-projects: { name: pgdata-projects }
+  pgdata-resources: { name: pgdata-resources }
+  pgdata-analytics: { name: pgdata-analytics }
   pgdata-keycloak: { name: pgdata-keycloak }
 
 services:
@@ -71,7 +71,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
     volumes:
-      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./backend/docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     ports: ["8080:8080"]
     depends_on:
       db-keycloak:
@@ -79,57 +79,57 @@ services:
     restart: unless-stopped
 
   # ---- BD por microservicio ----
-  db-proyectos:
+  db-projects:
     image: postgres:16
-    container_name: db-proyectos
+    container_name: db-projects
     networks: [innovatech-net]
     environment:
-      POSTGRES_DB: ${DB_PROYECTOS_NAME:-proyectos}
-      POSTGRES_USER: ${DB_PROYECTOS_USER:-proyectos_user}
-      POSTGRES_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+      POSTGRES_DB: ${DB_PROJECTS_NAME:-projects}
+      POSTGRES_USER: ${DB_PROJECTS_USER:-projects_user}
+      POSTGRES_PASSWORD: ${DB_PROJECTS_PASSWORD:-projects_dev}
     volumes:
-      - pgdata-proyectos:/var/lib/postgresql/data
+      - pgdata-projects:/var/lib/postgresql/data
     ports: ["5432:5432"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_PROYECTOS_USER:-proyectos_user} -d ${DB_PROYECTOS_NAME:-proyectos}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_PROJECTS_USER:-projects_user} -d ${DB_PROJECTS_NAME:-projects}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
 
-  db-recursos:
+  db-resources:
     image: postgres:16
-    container_name: db-recursos
+    container_name: db-resources
     networks: [innovatech-net]
     environment:
-      POSTGRES_DB: ${DB_RECURSOS_NAME:-recursos}
-      POSTGRES_USER: ${DB_RECURSOS_USER:-recursos_user}
-      POSTGRES_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+      POSTGRES_DB: ${DB_RESOURCES_NAME:-resources}
+      POSTGRES_USER: ${DB_RESOURCES_USER:-resources_user}
+      POSTGRES_PASSWORD: ${DB_RESOURCES_PASSWORD:-resources_dev}
     volumes:
-      - pgdata-recursos:/var/lib/postgresql/data
+      - pgdata-resources:/var/lib/postgresql/data
     ports: ["5433:5432"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_RECURSOS_USER:-recursos_user} -d ${DB_RECURSOS_NAME:-recursos}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_RESOURCES_USER:-resources_user} -d ${DB_RESOURCES_NAME:-resources}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
 
-  db-analitica:
+  db-analytics:
     image: postgres:16
-    container_name: db-analitica
+    container_name: db-analytics
     networks: [innovatech-net]
     environment:
-      POSTGRES_DB: ${DB_ANALITICA_NAME:-analitica}
-      POSTGRES_USER: ${DB_ANALITICA_USER:-analitica_user}
-      POSTGRES_PASSWORD: ${DB_ANALITICA_PASSWORD:-analitica_dev}
+      POSTGRES_DB: ${DB_ANALYTICS_NAME:-analytics}
+      POSTGRES_USER: ${DB_ANALYTICS_USER:-analytics_user}
+      POSTGRES_PASSWORD: ${DB_ANALYTICS_PASSWORD:-analytics_dev}
     volumes:
-      - pgdata-analitica:/var/lib/postgresql/data
+      - pgdata-analytics:/var/lib/postgresql/data
     ports: ["5434:5432"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_ANALITICA_USER:-analitica_user} -d ${DB_ANALITICA_NAME:-analitica}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ANALYTICS_USER:-analytics_user} -d ${DB_ANALYTICS_NAME:-analytics}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -137,60 +137,60 @@ services:
     restart: unless-stopped
 
   # ---- Microservicios de negocio ----
-  ms-proyectos:
-    image: ${DOCKERHUB_USERNAME}/innovatech-ms-proyectos:${TAG:-latest}
-    container_name: ms-proyectos
+  ms-projects:
+    image: ${DOCKERHUB_USERNAME}/innovatech-ms-projects:${TAG:-latest}
+    container_name: ms-projects
     networks: [innovatech-net]
     ports: ["8081:8081"]
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
-      DB_PROYECTOS_HOST: db-proyectos
-      DB_PROYECTOS_NAME: ${DB_PROYECTOS_NAME:-proyectos}
-      DB_PROYECTOS_USER: ${DB_PROYECTOS_USER:-proyectos_user}
-      DB_PROYECTOS_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+      DB_PROJECTS_HOST: db-projects
+      DB_PROJECTS_NAME: ${DB_PROJECTS_NAME:-projects}
+      DB_PROJECTS_USER: ${DB_PROJECTS_USER:-projects_user}
+      DB_PROJECTS_PASSWORD: ${DB_PROJECTS_PASSWORD:-projects_dev}
     depends_on:
       eureka-server:
         condition: service_started
-      db-proyectos:
+      db-projects:
         condition: service_healthy
     restart: unless-stopped
 
-  ms-recursos:
-    image: ${DOCKERHUB_USERNAME}/innovatech-ms-recursos:${TAG:-latest}
-    container_name: ms-recursos
+  ms-resources:
+    image: ${DOCKERHUB_USERNAME}/innovatech-ms-resources:${TAG:-latest}
+    container_name: ms-resources
     networks: [innovatech-net]
     ports: ["8082:8082"]
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
-      DB_RECURSOS_HOST: db-recursos
-      DB_RECURSOS_NAME: ${DB_RECURSOS_NAME:-recursos}
-      DB_RECURSOS_USER: ${DB_RECURSOS_USER:-recursos_user}
-      DB_RECURSOS_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+      DB_RESOURCES_HOST: db-resources
+      DB_RESOURCES_NAME: ${DB_RESOURCES_NAME:-resources}
+      DB_RESOURCES_USER: ${DB_RESOURCES_USER:-resources_user}
+      DB_RESOURCES_PASSWORD: ${DB_RESOURCES_PASSWORD:-resources_dev}
     depends_on:
       eureka-server:
         condition: service_started
-      db-recursos:
+      db-resources:
         condition: service_healthy
     restart: unless-stopped
 
-  ms-analitica:
-    image: ${DOCKERHUB_USERNAME}/innovatech-ms-analitica:${TAG:-latest}
-    container_name: ms-analitica
+  ms-analytics:
+    image: ${DOCKERHUB_USERNAME}/innovatech-ms-analytics:${TAG:-latest}
+    container_name: ms-analytics
     networks: [innovatech-net]
     ports: ["8083:8083"]
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
-      DB_ANALITICA_HOST: db-analitica
-      DB_ANALITICA_NAME: ${DB_ANALITICA_NAME:-analitica}
-      DB_ANALITICA_USER: ${DB_ANALITICA_USER:-analitica_user}
-      DB_ANALITICA_PASSWORD: ${DB_ANALITICA_PASSWORD:-analitica_dev}
+      DB_ANALYTICS_HOST: db-analytics
+      DB_ANALYTICS_NAME: ${DB_ANALYTICS_NAME:-analytics}
+      DB_ANALYTICS_USER: ${DB_ANALYTICS_USER:-analytics_user}
+      DB_ANALYTICS_PASSWORD: ${DB_ANALYTICS_PASSWORD:-analytics_dev}
       SNAPSHOTS_ENABLED: ${SNAPSHOTS_ENABLED:-true}
       SNAPSHOTS_CRON: ${SNAPSHOTS_CRON:-0 */5 * * * *}
       SNAPSHOTS_BACKFILL_WEEKS: ${SNAPSHOTS_BACKFILL_WEEKS:-12}
     depends_on:
       eureka-server:
         condition: service_started
-      db-analitica:
+      db-analytics:
         condition: service_healthy
     restart: unless-stopped
 
