@@ -228,9 +228,9 @@ services:
     image: ${DOCKERHUB_USERNAME}/innovatech-frontend:${TAG:-latest}
     container_name: frontend
     networks: [innovatech-net]
-    ports: ["3000:80"]
+    ports: ["3000:8080"]
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost/healthz"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3
