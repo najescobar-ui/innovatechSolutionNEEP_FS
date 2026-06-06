@@ -10,37 +10,37 @@ import { useAuth } from "../auth/useAuth";
 
 type Dashboard = {
   role: "PM" | "DEV" | "DIR";
-  proyectosSupervisados?: number;
-  tareasEnRiesgo?: number;
-  proximosHitos?: string[];
-  tareasAsignadas?: number;
-  tareasPendientes?: number;
-  proyectosEnCurso?: string[];
-  proyectosActivos?: number;
-  porcentajeUtilizacion?: number;
-  alertasGlobales?: number;
+  supervisedProjects?: number;
+  tasksAtRisk?: number;
+  upcomingMilestones?: string[];
+  assignedTasks?: number;
+  pendingTasks?: number;
+  ongoingProjects?: string[];
+  activeProjects?: number;
+  utilizationPercentage?: number;
+  globalAlerts?: number;
 };
 
 type Kpis = {
   status: string;
-  proyectosActivos: number;
-  proyectosAtrasados: number;
-  totalRecursosActivos: number;
-  capacidadSemanalTotalHoras: number;
-  promedioHorasPorRecurso: number;
-  porcentajeUtilizacion?: number;
-  recursosPorRol: Record<string, number>;
-  proyectosPorEstado: Record<string, number>;
+  activeProjects: number;
+  delayedProjects: number;
+  totalActiveResources: number;
+  totalWeeklyCapacityHours: number;
+  avgHoursPerResource: number;
+  utilizationPercentage?: number;
+  resourcesByRole: Record<string, number>;
+  projectsByStatus: Record<string, number>;
 };
 
-type Historico = {
+type History = {
   status: string;
-  utilizacion: { t: string; v: number }[];
-  proyectosActivos: { t: string; v: number }[];
+  utilization: { t: string; v: number }[];
+  activeProjects: { t: string; v: number }[];
   deltas: {
-    porcentajeUtilizacion: number | null;
-    proyectosActivos: number | null;
-    recursosActivos: number | null;
+    utilizationPercentage: number | null;
+    activeProjects: number | null;
+    activeResources: number | null;
   };
 };
 
@@ -53,15 +53,15 @@ const ROLE_COLORS: Record<string, string> = {
 };
 const FALLBACK_COLOR = "rgb(var(--fg-muted))";
 
-const ESTADO_COLORS: Record<string, string> = {
-  PLANIFICACION: "rgb(var(--info))",
-  EN_CURSO:      "rgb(var(--success))",
-  COMPLETADO:    "rgb(var(--fg-muted))",
-  CANCELADO:     "rgb(var(--danger))",
-  PAUSADO:       "rgb(var(--warning))",
+const STATUS_COLORS: Record<string, string> = {
+  PLANNING:    "rgb(var(--info))",
+  IN_PROGRESS: "rgb(var(--success))",
+  COMPLETED:   "rgb(var(--fg-muted))",
+  CANCELLED:   "rgb(var(--danger))",
+  PAUSED:      "rgb(var(--warning))",
 };
 
-const MAX_RANGO_DIAS = 30;
+const MAX_RANGE_DAYS = 30;
 
 // Helpers de fecha: trabajamos con YYYY-MM-DD locales para los inputs nativos.
 function isoDate(d: Date) {
@@ -70,15 +70,15 @@ function isoDate(d: Date) {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-function hoyISO() { return isoDate(new Date()); }
-function haceDiasISO(n: number) {
+function todayISO() { return isoDate(new Date()); }
+function daysAgoISO(n: number) {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return isoDate(d);
 }
-function diasEntre(desde: string, hasta: string): number {
-  const a = new Date(desde + "T00:00:00");
-  const b = new Date(hasta + "T00:00:00");
+function daysBetween(from: string, to: string): number {
+  const a = new Date(from + "T00:00:00");
+  const b = new Date(to + "T00:00:00");
   return Math.round((b.getTime() - a.getTime()) / 86400000);
 }
 
@@ -86,18 +86,18 @@ export function Dashboard() {
   const { fullName, username, roles } = useAuth();
   const [data, setData] = useState<Dashboard | null>(null);
   const [kpis, setKpis] = useState<Kpis | null>(null);
-  const [historico, setHistorico] = useState<Historico | null>(null);
+  const [history, setHistory] = useState<History | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   // Rango de fechas para el grafico de evolucion (default: ultimos 30 dias).
-  const [desde, setDesde] = useState<string>(haceDiasISO(30));
-  const [hasta, setHasta] = useState<string>(hoyISO());
-  const [errRango, setErrRango] = useState<string | null>(null);
+  const [from, setFrom] = useState<string>(daysAgoISO(30));
+  const [to, setTo] = useState<string>(todayISO());
+  const [errRange, setErrRange] = useState<string | null>(null);
 
   useEffect(() => {
     api.get<Dashboard>("/dashboard")
       .then((r) => setData(r.data))
-      .catch((e) => setErr(e.message ?? "error desconocido"));
+      .catch((e) => setErr(e.message ?? "unknown error"));
 
     if (roles.includes("DIR")) {
       api.get<Kpis>("/kpis").then((r) => setKpis(r.data)).catch(() => {});
@@ -107,14 +107,14 @@ export function Dashboard() {
   // Refetch historico cuando cambia el rango (con validacion).
   useEffect(() => {
     if (!roles.includes("DIR")) return;
-    const dias = diasEntre(desde, hasta);
-    if (dias < 0) { setErrRango("La fecha 'hasta' no puede ser anterior a 'desde'."); return; }
-    if (dias > MAX_RANGO_DIAS) { setErrRango(`El rango maximo es ${MAX_RANGO_DIAS} dias.`); return; }
-    setErrRango(null);
-    api.get<Historico>(`/kpis/historico?desde=${desde}&hasta=${hasta}`)
-      .then((r) => setHistorico(r.data))
-      .catch(() => setHistorico(null));
-  }, [roles.join(","), desde, hasta]);
+    const days = daysBetween(from, to);
+    if (days < 0) { setErrRange("The 'to' date cannot be before 'from'."); return; }
+    if (days > MAX_RANGE_DAYS) { setErrRange(`The max range is ${MAX_RANGE_DAYS} days.`); return; }
+    setErrRange(null);
+    api.get<History>(`/kpis/history?from=${from}&to=${to}`)
+      .then((r) => setHistory(r.data))
+      .catch(() => setHistory(null));
+  }, [roles.join(","), from, to]);
 
   return (
     <div className="space-y-5 max-w-[1200px]">
@@ -123,7 +123,7 @@ export function Dashboard() {
       {err && (
         <Card>
           <CardBody>
-            <p className="text-danger text-[13px]">No se pudo cargar el dashboard: {err}</p>
+            <p className="text-danger text-[13px]">Could not load the dashboard: {err}</p>
           </CardBody>
         </Card>
       )}
@@ -136,13 +136,13 @@ export function Dashboard() {
         <DashboardDir
           data={data}
           kpis={kpis}
-          historico={historico}
-          desde={desde}
-          hasta={hasta}
-          onDesde={setDesde}
-          onHasta={setHasta}
-          errRango={errRango}
-          onReset={() => { setDesde(haceDiasISO(30)); setHasta(hoyISO()); }}
+          history={history}
+          from={from}
+          to={to}
+          onFrom={setFrom}
+          onTo={setTo}
+          errRange={errRange}
+          onReset={() => { setFrom(daysAgoISO(30)); setTo(todayISO()); }}
         />
       )}
     </div>
@@ -150,19 +150,19 @@ export function Dashboard() {
 }
 
 function Hero({ fullName, username, roles }: { fullName: string; username: string; roles: string[] }) {
-  const rol = roles[0] ?? "";
-  const subtitulo: Record<string, string> = {
-    PM:  "Tu cartera de proyectos y los hitos del proximo trimestre.",
-    DEV: "Tu carga de trabajo y los proyectos en los que estas asignado.",
-    DIR: "Indicadores ejecutivos y salud general de la operacion.",
+  const role = roles[0] ?? "";
+  const subtitle: Record<string, string> = {
+    PM:  "Your project portfolio and next quarter's milestones.",
+    DEV: "Your workload and the projects you are assigned to.",
+    DIR: "Executive indicators and overall health of the operation.",
   };
   return (
     <div>
       <h1 className="text-lg font-semibold text-fg">
-        Hola, {fullName || username}
+        Hi, {fullName || username}
       </h1>
       <p className="text-[13px] text-fg-muted mt-0.5">
-        {subtitulo[rol] ?? "Bienvenido a Innovatech."}
+        {subtitle[role] ?? "Welcome to Innovatech."}
       </p>
     </div>
   );
@@ -203,7 +203,7 @@ function DeltaPill({ delta }: { delta: Delta }) {
     <div className={`flex items-center gap-1 text-[11px] ${color}`}>
       <span>{arrow}</span>
       <span className="font-mono">{positive ? "+" : ""}{delta.value}{delta.suffix ?? ""}</span>
-      <span className="text-fg-subtle">vs mes anterior</span>
+      <span className="text-fg-subtle">vs last month</span>
     </div>
   );
 }
@@ -248,38 +248,38 @@ function SkeletonGrid() {
 }
 
 function DashboardPM({ data }: { data: Dashboard }) {
-  const total = data.proyectosSupervisados ?? 0;
-  const enRiesgo = data.tareasEnRiesgo ?? 0;
-  const pctRiesgo = total === 0 ? 0 : Math.round((enRiesgo / total) * 100);
-  const cumplimiento = Math.max(0, 100 - pctRiesgo);
+  const total = data.supervisedProjects ?? 0;
+  const atRisk = data.tasksAtRisk ?? 0;
+  const pctRisk = total === 0 ? 0 : Math.round((atRisk / total) * 100);
+  const onTrack = Math.max(0, 100 - pctRisk);
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <KpiCard label="Proyectos supervisados" value={String(total)} />
+        <KpiCard label="Supervised projects" value={String(total)} />
         <KpiCard
-          label="Tareas en riesgo"
-          value={String(enRiesgo)}
+          label="Tasks at risk"
+          value={String(atRisk)}
           valueColor="text-warning"
         />
         <KpiCard
-          label="Cumplimiento"
-          value={`${cumplimiento}%`}
-          valueColor={cumplimiento >= 70 ? "text-success" : "text-warning"}
+          label="On track"
+          value={`${onTrack}%`}
+          valueColor={onTrack >= 70 ? "text-success" : "text-warning"}
         />
       </div>
 
       <Card>
-        <CardHeader title="Proximos hitos" subtitle="Lo que viene en las proximas semanas" />
+        <CardHeader title="Upcoming milestones" subtitle="What's coming in the next weeks" />
         <CardBody className="!py-0">
           <ul className="divide-y divide-border">
-            {(data.proximosHitos ?? []).map((h, i) => (
+            {(data.upcomingMilestones ?? []).map((h, i) => (
               <li key={i} className="py-3 flex items-center justify-between text-[13px]">
                 <span className="text-fg">{h}</span>
-                <Badge tone="info">proximo</Badge>
+                <Badge tone="info">upcoming</Badge>
               </li>
             ))}
-            {(data.proximosHitos ?? []).length === 0 && (
-              <li className="py-6 text-[13px] text-fg-muted text-center">Sin hitos cargados.</li>
+            {(data.upcomingMilestones ?? []).length === 0 && (
+              <li className="py-6 text-[13px] text-fg-muted text-center">No milestones loaded.</li>
             )}
           </ul>
         </CardBody>
@@ -289,38 +289,38 @@ function DashboardPM({ data }: { data: Dashboard }) {
 }
 
 function DashboardDev({ data }: { data: Dashboard }) {
-  const asignadas = data.tareasAsignadas ?? 0;
-  const pendientes = data.tareasPendientes ?? 0;
-  const completadas = Math.max(0, asignadas - pendientes);
-  const pctCompletadas = asignadas === 0 ? 0 : Math.round((completadas / asignadas) * 100);
+  const assigned = data.assignedTasks ?? 0;
+  const pending = data.pendingTasks ?? 0;
+  const completed = Math.max(0, assigned - pending);
+  const pctCompleted = assigned === 0 ? 0 : Math.round((completed / assigned) * 100);
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <KpiCard label="Tareas asignadas" value={String(asignadas)} />
-        <KpiCard label="Pendientes" value={String(pendientes)} valueColor="text-warning" />
+        <KpiCard label="Assigned tasks" value={String(assigned)} />
+        <KpiCard label="Pending" value={String(pending)} valueColor="text-warning" />
         <KpiCard
-          label="Progreso"
-          value={`${pctCompletadas}%`}
-          valueColor={pctCompletadas >= 70 ? "text-success" : "text-fg"}
+          label="Progress"
+          value={`${pctCompleted}%`}
+          valueColor={pctCompleted >= 70 ? "text-success" : "text-fg"}
         />
       </div>
 
       <Card>
-        <CardHeader title="Proyectos en curso" subtitle="Donde estas asignado actualmente" />
+        <CardHeader title="Ongoing projects" subtitle="Where you are currently assigned" />
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {(data.proyectosEnCurso ?? []).map((p, i) => (
+            {(data.ongoingProjects ?? []).map((p, i) => (
               <div
                 key={i}
                 className="border border-border rounded px-3 py-2 hover:bg-surface2 transition-colors"
               >
                 <div className="text-[13px] font-medium text-fg truncate">{p}</div>
-                <div className="text-[11px] text-fg-muted mt-0.5">en curso</div>
+                <div className="text-[11px] text-fg-muted mt-0.5">in progress</div>
               </div>
             ))}
-            {(data.proyectosEnCurso ?? []).length === 0 && (
+            {(data.ongoingProjects ?? []).length === 0 && (
               <div className="col-span-2 py-6 text-[13px] text-fg-muted text-center">
-                No estas asignado a ningun proyecto.
+                You are not assigned to any project.
               </div>
             )}
           </div>
@@ -331,76 +331,76 @@ function DashboardDev({ data }: { data: Dashboard }) {
 }
 
 function DashboardDir({
-  data, kpis, historico, desde, hasta, onDesde, onHasta, errRango, onReset,
+  data, kpis, history, from, to, onFrom, onTo, errRange, onReset,
 }: {
   data: Dashboard;
   kpis: Kpis | null;
-  historico: Historico | null;
-  desde: string;
-  hasta: string;
-  onDesde: (s: string) => void;
-  onHasta: (s: string) => void;
-  errRango: string | null;
+  history: History | null;
+  from: string;
+  to: string;
+  onFrom: (s: string) => void;
+  onTo: (s: string) => void;
+  errRange: string | null;
   onReset: () => void;
 }) {
-  const utiPct = Math.round((data.porcentajeUtilizacion ?? 0) * 100);
+  const utiPct = Math.round((data.utilizationPercentage ?? 0) * 100);
 
-  const sparkSeries = historico?.utilizacion?.length
-    ? historico.utilizacion.map((p) => Math.round(p.v * 100))
+  const sparkSeries = history?.utilization?.length
+    ? history.utilization.map((p) => Math.round(p.v * 100))
     : undefined;
 
-  const deltaUtil = historico?.deltas?.porcentajeUtilizacion;
-  const deltaProy = historico?.deltas?.proyectosActivos;
+  const deltaUtil = history?.deltas?.utilizationPercentage;
+  const deltaProj = history?.deltas?.activeProjects;
 
-  const rolesData = kpis?.recursosPorRol
-    ? Object.entries(kpis.recursosPorRol).map(([name, value]) => ({ name, value }))
+  const rolesData = kpis?.resourcesByRole
+    ? Object.entries(kpis.resourcesByRole).map(([name, value]) => ({ name, value }))
     : [];
-  const totalRecursos = rolesData.reduce((acc, r) => acc + r.value, 0);
+  const totalResources = rolesData.reduce((acc, r) => acc + r.value, 0);
 
-  const estadosData = kpis?.proyectosPorEstado
-    ? Object.entries(kpis.proyectosPorEstado).map(([name, value]) => ({ name, value }))
+  const statusData = kpis?.projectsByStatus
+    ? Object.entries(kpis.projectsByStatus).map(([name, value]) => ({ name, value }))
     : [];
-  const totalProyectos = estadosData.reduce((acc, e) => acc + e.value, 0);
+  const totalProjects = statusData.reduce((acc, e) => acc + e.value, 0);
 
   return (
     <>
-      <RangoFechas
-        desde={desde}
-        hasta={hasta}
-        onDesde={onDesde}
-        onHasta={onHasta}
+      <DateRange
+        from={from}
+        to={to}
+        onFrom={onFrom}
+        onTo={onTo}
         onReset={onReset}
-        error={errRango}
+        error={errRange}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <KpiCard
-          label="Proyectos activos"
-          value={String(data.proyectosActivos ?? 0)}
-          delta={deltaProy != null ? { value: deltaProy } : undefined}
+          label="Active projects"
+          value={String(data.activeProjects ?? 0)}
+          delta={deltaProj != null ? { value: deltaProj } : undefined}
         />
         <KpiCard
-          label="Utilizacion"
+          label="Utilization"
           value={`${utiPct}%`}
           valueColor={utiPct >= 80 ? "text-warning" : "text-fg"}
           sparkline={sparkSeries}
           delta={deltaUtil != null ? { value: Math.round(deltaUtil * 100), suffix: "pp" } : undefined}
         />
         <KpiCard
-          label="Alertas globales"
-          value={String(data.alertasGlobales ?? 0)}
-          valueColor={(data.alertasGlobales ?? 0) > 0 ? "text-danger" : "text-fg"}
+          label="Global alerts"
+          value={String(data.globalAlerts ?? 0)}
+          valueColor={(data.globalAlerts ?? 0) > 0 ? "text-danger" : "text-fg"}
         />
       </div>
 
-      <EvolucionChart historico={historico} desde={desde} hasta={hasta} />
+      <EvolutionChart history={history} from={from} to={to} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <Card className="lg:col-span-2">
-          <CardHeader title="Recursos por rol" subtitle="Distribucion de talento activo" />
+          <CardHeader title="Resources by role" subtitle="Active talent distribution" />
           <CardBody>
             {rolesData.length === 0 ? (
-              <p className="text-[13px] text-fg-muted">Cargando KPIs...</p>
+              <p className="text-[13px] text-fg-muted">Loading KPIs...</p>
             ) : (
               <div className="flex items-center gap-6">
                 <div className="relative w-[200px] h-[200px] shrink-0">
@@ -431,14 +431,14 @@ function DashboardDir({
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="font-mono text-xl text-fg leading-none">{totalRecursos}</span>
-                    <span className="text-[10px] uppercase tracking-wider text-fg-muted mt-1">recursos</span>
+                    <span className="font-mono text-xl text-fg leading-none">{totalResources}</span>
+                    <span className="text-[10px] uppercase tracking-wider text-fg-muted mt-1">resources</span>
                   </div>
                 </div>
 
                 <ul className="flex-1 space-y-1.5 min-w-0">
                   {rolesData.map((r) => {
-                    const pct = totalRecursos === 0 ? 0 : Math.round((r.value / totalRecursos) * 100);
+                    const pct = totalResources === 0 ? 0 : Math.round((r.value / totalResources) * 100);
                     return (
                       <li key={r.name} className="flex items-center gap-2.5 text-[13px]">
                         <span
@@ -458,26 +458,26 @@ function DashboardDir({
         </Card>
 
         <Card>
-          <CardHeader title="Capacidad" subtitle="Horas semanales" />
+          <CardHeader title="Capacity" subtitle="Weekly hours" />
           <CardBody>
-            <CapacidadRow kpis={kpis} />
+            <CapacityRow kpis={kpis} />
           </CardBody>
         </Card>
       </div>
 
       <Card>
-        <CardHeader title="Proyectos por estado" subtitle="Cartera global agrupada" />
+        <CardHeader title="Projects by status" subtitle="Global portfolio grouped" />
         <CardBody>
-          {estadosData.length === 0 ? (
-            <p className="text-[13px] text-fg-muted">Cargando KPIs...</p>
+          {statusData.length === 0 ? (
+            <p className="text-[13px] text-fg-muted">Loading KPIs...</p>
           ) : (
             <StackedBar
-              segments={estadosData.map((e) => ({
+              segments={statusData.map((e) => ({
                 key: e.name,
                 value: e.value,
-                color: ESTADO_COLORS[e.name] ?? FALLBACK_COLOR,
+                color: STATUS_COLORS[e.name] ?? FALLBACK_COLOR,
               }))}
-              total={totalProyectos}
+              total={totalProjects}
             />
           )}
         </CardBody>
@@ -486,41 +486,41 @@ function DashboardDir({
   );
 }
 
-function RangoFechas({
-  desde, hasta, onDesde, onHasta, onReset, error,
+function DateRange({
+  from, to, onFrom, onTo, onReset, error,
 }: {
-  desde: string;
-  hasta: string;
-  onDesde: (s: string) => void;
-  onHasta: (s: string) => void;
+  from: string;
+  to: string;
+  onFrom: (s: string) => void;
+  onTo: (s: string) => void;
   onReset: () => void;
   error: string | null;
 }) {
-  const dias = diasEntre(desde, hasta);
-  const dur = dias >= 0 ? `${dias + 1} dia${dias === 0 ? "" : "s"}` : "—";
+  const days = daysBetween(from, to);
+  const dur = days >= 0 ? `${days + 1} day${days === 0 ? "" : "s"}` : "—";
   return (
     <div className="bg-surface border border-border rounded-md px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="text-[11px] uppercase tracking-wider text-fg-muted">Periodo</div>
+        <div className="text-[11px] uppercase tracking-wider text-fg-muted">Period</div>
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-1.5 text-[12px] text-fg-muted">
-            <span>Desde</span>
+            <span>From</span>
             <input
               type="date"
-              value={desde}
-              max={hasta || hoyISO()}
-              onChange={(e) => onDesde(e.target.value)}
+              value={from}
+              max={to || todayISO()}
+              onChange={(e) => onFrom(e.target.value)}
               className="bg-bg border border-border rounded px-2 py-1 text-[12px] text-fg focus:outline-none focus:border-accent/60"
             />
           </label>
           <label className="flex items-center gap-1.5 text-[12px] text-fg-muted">
-            <span>Hasta</span>
+            <span>To</span>
             <input
               type="date"
-              value={hasta}
-              min={desde}
-              max={hoyISO()}
-              onChange={(e) => onHasta(e.target.value)}
+              value={to}
+              min={from}
+              max={todayISO()}
+              onChange={(e) => onTo(e.target.value)}
               className="bg-bg border border-border rounded px-2 py-1 text-[12px] text-fg focus:outline-none focus:border-accent/60"
             />
           </label>
@@ -534,43 +534,43 @@ function RangoFechas({
           onClick={onReset}
           className="text-[12px] text-fg-muted hover:text-fg hover:bg-surface2 px-2.5 py-1 rounded transition-colors"
         >
-          Restablecer
+          Reset
         </button>
       </div>
     </div>
   );
 }
 
-function EvolucionChart({
-  historico, desde, hasta,
+function EvolutionChart({
+  history, from, to,
 }: {
-  historico: Historico | null;
-  desde: string;
-  hasta: string;
+  history: History | null;
+  from: string;
+  to: string;
 }) {
   const dataChart = useMemo(() => {
-    if (!historico?.utilizacion?.length) return [];
-    return historico.utilizacion.map((p, i) => {
-      const proyectos = historico.proyectosActivos?.[i]?.v ?? 0;
+    if (!history?.utilization?.length) return [];
+    return history.utilization.map((p, i) => {
+      const projects = history.activeProjects?.[i]?.v ?? 0;
       const t = new Date(p.t);
       return {
         label: `${String(t.getDate()).padStart(2, "0")}/${String(t.getMonth() + 1).padStart(2, "0")}`,
-        utilizacion: Math.round(p.v * 100),
-        proyectos,
+        utilization: Math.round(p.v * 100),
+        projects,
       };
     });
-  }, [historico]);
+  }, [history]);
 
   return (
     <Card>
       <CardHeader
-        title="Evolucion del periodo"
-        subtitle={`Utilizacion y proyectos activos · ${desde} → ${hasta}`}
+        title="Period evolution"
+        subtitle={`Utilization and active projects · ${from} → ${to}`}
       />
       <CardBody>
         {dataChart.length === 0 ? (
           <p className="text-[13px] text-fg-muted">
-            Sin snapshots en este rango. {historico?.status === "datos no disponibles" && "(servicio caido)"}
+            No snapshots in this range. {history?.status === "datos no disponibles" && "(service down)"}
           </p>
         ) : (
           <div className="w-full h-[260px]">
@@ -612,14 +612,14 @@ function EvolucionChart({
                   }}
                   labelStyle={{ color: "rgb(var(--fg-muted))" }}
                   formatter={(value: number, name: string) => {
-                    if (name === "utilizacion") return [`${value}%`, "Utilizacion"];
-                    return [value, "Proyectos activos"];
+                    if (name === "utilization") return [`${value}%`, "Utilization"];
+                    return [value, "Active projects"];
                   }}
                 />
                 <Line
                   yAxisId="left"
                   type="monotone"
-                  dataKey="utilizacion"
+                  dataKey="utilization"
                   stroke="rgb(var(--accent))"
                   strokeWidth={2}
                   dot={false}
@@ -628,7 +628,7 @@ function EvolucionChart({
                 <Line
                   yAxisId="right"
                   type="monotone"
-                  dataKey="proyectos"
+                  dataKey="projects"
                   stroke="rgb(var(--info))"
                   strokeWidth={2}
                   dot={false}
@@ -639,11 +639,11 @@ function EvolucionChart({
             <div className="flex items-center gap-4 mt-2 text-[11px] text-fg-muted">
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-0.5 rounded" style={{ background: "rgb(var(--accent))" }} />
-                Utilizacion (%)
+                Utilization (%)
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-0.5 rounded" style={{ background: "rgb(var(--info))" }} />
-                Proyectos activos
+                Active projects
               </span>
             </div>
           </div>
@@ -653,21 +653,21 @@ function EvolucionChart({
   );
 }
 
-function CapacidadRow({ kpis }: { kpis: Kpis | null }) {
+function CapacityRow({ kpis }: { kpis: Kpis | null }) {
   const items = [
     {
       label: "Total",
-      value: kpis?.capacidadSemanalTotalHoras ?? "—",
+      value: kpis?.totalWeeklyCapacityHours ?? "—",
       suffix: "h",
     },
     {
-      label: "Promedio",
-      value: kpis?.promedioHorasPorRecurso != null ? kpis.promedioHorasPorRecurso.toFixed(1) : "—",
-      suffix: "h/recurso",
+      label: "Average",
+      value: kpis?.avgHoursPerResource != null ? kpis.avgHoursPerResource.toFixed(1) : "—",
+      suffix: "h/resource",
     },
     {
-      label: "Recursos activos",
-      value: kpis?.totalRecursosActivos ?? "—",
+      label: "Active resources",
+      value: kpis?.totalActiveResources ?? "—",
       suffix: "",
     },
   ];
@@ -692,7 +692,7 @@ function StackedBar({
   segments: { key: string; value: number; color: string }[];
   total: number;
 }) {
-  if (total === 0) return <p className="text-[13px] text-fg-muted">Sin datos.</p>;
+  if (total === 0) return <p className="text-[13px] text-fg-muted">No data.</p>;
   return (
     <div className="space-y-3">
       <div className="flex h-2 rounded overflow-hidden bg-surface2">

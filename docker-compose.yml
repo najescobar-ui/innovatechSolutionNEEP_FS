@@ -16,12 +16,12 @@ networks:
     driver: bridge
 
 volumes:
-  pgdata-proyectos:
-    name: pgdata-proyectos
-  pgdata-recursos:
-    name: pgdata-recursos
-  pgdata-analitica:
-    name: pgdata-analitica
+  pgdata-projects:
+    name: pgdata-projects
+  pgdata-resources:
+    name: pgdata-resources
+  pgdata-analytics:
+    name: pgdata-analytics
   pgdata-keycloak:
     name: pgdata-keycloak
 
@@ -31,7 +31,7 @@ services:
   # ------------------------------------------------------------------
   eureka-server:
     build:
-      context: .
+      context: ./backend
       dockerfile: eureka-server/Dockerfile
     image: innovatech/eureka-server:dev
     container_name: eureka-server
@@ -80,7 +80,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
     volumes:
-      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./backend/docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     ports:
       - "8080:8080"
     depends_on:
@@ -91,60 +91,60 @@ services:
   # ------------------------------------------------------------------
   # BD: una PostgreSQL por microservicio (Database per Service, §5.1)
   # ------------------------------------------------------------------
-  db-proyectos:
+  db-projects:
     image: postgres:16
-    container_name: db-proyectos
+    container_name: db-projects
     networks: [innovatech-net]
     environment:
-      POSTGRES_DB: ${DB_PROYECTOS_NAME:-proyectos}
-      POSTGRES_USER: ${DB_PROYECTOS_USER:-proyectos_user}
-      POSTGRES_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+      POSTGRES_DB: ${DB_PROJECTS_NAME:-projects}
+      POSTGRES_USER: ${DB_PROJECTS_USER:-projects_user}
+      POSTGRES_PASSWORD: ${DB_PROJECTS_PASSWORD:-projects_dev}
     volumes:
-      - pgdata-proyectos:/var/lib/postgresql/data
+      - pgdata-projects:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_PROYECTOS_USER:-proyectos_user} -d ${DB_PROYECTOS_NAME:-proyectos}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_PROJECTS_USER:-projects_user} -d ${DB_PROJECTS_NAME:-projects}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
 
-  db-recursos:
+  db-resources:
     image: postgres:16
-    container_name: db-recursos
+    container_name: db-resources
     networks: [innovatech-net]
     environment:
-      POSTGRES_DB: ${DB_RECURSOS_NAME:-recursos}
-      POSTGRES_USER: ${DB_RECURSOS_USER:-recursos_user}
-      POSTGRES_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+      POSTGRES_DB: ${DB_RESOURCES_NAME:-resources}
+      POSTGRES_USER: ${DB_RESOURCES_USER:-resources_user}
+      POSTGRES_PASSWORD: ${DB_RESOURCES_PASSWORD:-resources_dev}
     volumes:
-      - pgdata-recursos:/var/lib/postgresql/data
+      - pgdata-resources:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_RECURSOS_USER:-recursos_user} -d ${DB_RECURSOS_NAME:-recursos}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_RESOURCES_USER:-resources_user} -d ${DB_RESOURCES_NAME:-resources}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
 
-  db-analitica:
+  db-analytics:
     image: postgres:16
-    container_name: db-analitica
+    container_name: db-analytics
     networks: [innovatech-net]
     environment:
-      POSTGRES_DB: ${DB_ANALITICA_NAME:-analitica}
-      POSTGRES_USER: ${DB_ANALITICA_USER:-analitica_user}
-      POSTGRES_PASSWORD: ${DB_ANALITICA_PASSWORD:-analitica_dev}
+      POSTGRES_DB: ${DB_ANALYTICS_NAME:-analytics}
+      POSTGRES_USER: ${DB_ANALYTICS_USER:-analytics_user}
+      POSTGRES_PASSWORD: ${DB_ANALYTICS_PASSWORD:-analytics_dev}
     volumes:
-      - pgdata-analitica:/var/lib/postgresql/data
+      - pgdata-analytics:/var/lib/postgresql/data
     ports:
       - "5434:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_ANALITICA_USER:-analitica_user} -d ${DB_ANALITICA_NAME:-analitica}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ANALYTICS_USER:-analytics_user} -d ${DB_ANALYTICS_NAME:-analytics}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -154,72 +154,72 @@ services:
   # ------------------------------------------------------------------
   # Microservicios de negocio
   # ------------------------------------------------------------------
-  ms-proyectos:
+  ms-projects:
     build:
-      context: .
-      dockerfile: servicios/ms-proyectos/Dockerfile
-    image: innovatech/ms-proyectos:dev
-    container_name: ms-proyectos
+      context: ./backend
+      dockerfile: services/ms-projects/Dockerfile
+    image: innovatech/ms-projects:dev
+    container_name: ms-projects
     networks: [innovatech-net]
     ports:
       - "8081:8081"
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
-      DB_PROYECTOS_HOST: db-proyectos
-      DB_PROYECTOS_NAME: ${DB_PROYECTOS_NAME:-proyectos}
-      DB_PROYECTOS_USER: ${DB_PROYECTOS_USER:-proyectos_user}
-      DB_PROYECTOS_PASSWORD: ${DB_PROYECTOS_PASSWORD:-proyectos_dev}
+      DB_PROJECTS_HOST: db-projects
+      DB_PROJECTS_NAME: ${DB_PROJECTS_NAME:-projects}
+      DB_PROJECTS_USER: ${DB_PROJECTS_USER:-projects_user}
+      DB_PROJECTS_PASSWORD: ${DB_PROJECTS_PASSWORD:-projects_dev}
     depends_on:
       eureka-server:
         condition: service_started
-      db-proyectos:
+      db-projects:
         condition: service_healthy
     restart: unless-stopped
 
-  ms-recursos:
+  ms-resources:
     build:
-      context: .
-      dockerfile: servicios/ms-recursos/Dockerfile
-    image: innovatech/ms-recursos:dev
-    container_name: ms-recursos
+      context: ./backend
+      dockerfile: services/ms-resources/Dockerfile
+    image: innovatech/ms-resources:dev
+    container_name: ms-resources
     networks: [innovatech-net]
     ports:
       - "8082:8082"
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
-      DB_RECURSOS_HOST: db-recursos
-      DB_RECURSOS_NAME: ${DB_RECURSOS_NAME:-recursos}
-      DB_RECURSOS_USER: ${DB_RECURSOS_USER:-recursos_user}
-      DB_RECURSOS_PASSWORD: ${DB_RECURSOS_PASSWORD:-recursos_dev}
+      DB_RESOURCES_HOST: db-resources
+      DB_RESOURCES_NAME: ${DB_RESOURCES_NAME:-resources}
+      DB_RESOURCES_USER: ${DB_RESOURCES_USER:-resources_user}
+      DB_RESOURCES_PASSWORD: ${DB_RESOURCES_PASSWORD:-resources_dev}
     depends_on:
       eureka-server:
         condition: service_started
-      db-recursos:
+      db-resources:
         condition: service_healthy
     restart: unless-stopped
 
-  ms-analitica:
+  ms-analytics:
     build:
-      context: .
-      dockerfile: servicios/ms-analitica/Dockerfile
-    image: innovatech/ms-analitica:dev
-    container_name: ms-analitica
+      context: ./backend
+      dockerfile: services/ms-analytics/Dockerfile
+    image: innovatech/ms-analytics:dev
+    container_name: ms-analytics
     networks: [innovatech-net]
     ports:
       - "8083:8083"
     environment:
       EUREKA_DEFAULT_ZONE: http://eureka-server:8761/eureka/
-      DB_ANALITICA_HOST: db-analitica
-      DB_ANALITICA_NAME: ${DB_ANALITICA_NAME:-analitica}
-      DB_ANALITICA_USER: ${DB_ANALITICA_USER:-analitica_user}
-      DB_ANALITICA_PASSWORD: ${DB_ANALITICA_PASSWORD:-analitica_dev}
+      DB_ANALYTICS_HOST: db-analytics
+      DB_ANALYTICS_NAME: ${DB_ANALYTICS_NAME:-analytics}
+      DB_ANALYTICS_USER: ${DB_ANALYTICS_USER:-analytics_user}
+      DB_ANALYTICS_PASSWORD: ${DB_ANALYTICS_PASSWORD:-analytics_dev}
       SNAPSHOTS_ENABLED: ${SNAPSHOTS_ENABLED:-true}
       SNAPSHOTS_CRON: ${SNAPSHOTS_CRON:-0 */5 * * * *}
       SNAPSHOTS_BACKFILL_WEEKS: ${SNAPSHOTS_BACKFILL_WEEKS:-12}
     depends_on:
       eureka-server:
         condition: service_started
-      db-analitica:
+      db-analytics:
         condition: service_healthy
     restart: unless-stopped
 
@@ -228,7 +228,7 @@ services:
   # ------------------------------------------------------------------
   bff:
     build:
-      context: .
+      context: ./backend
       dockerfile: bff/Dockerfile
     image: innovatech/bff:dev
     container_name: bff
@@ -247,7 +247,7 @@ services:
   # ------------------------------------------------------------------
   api-gateway:
     build:
-      context: .
+      context: ./backend
       dockerfile: api-gateway/Dockerfile
     image: innovatech/api-gateway:dev
     container_name: api-gateway
@@ -313,7 +313,7 @@ services:
   #   ports:
   #     - "9090:9090"
   #   volumes:
-  #     - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - ./backend/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
   #   restart: unless-stopped
 
   # grafana:
@@ -326,7 +326,7 @@ services:
   #     GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
   #     GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
   #   volumes:
-  #     - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
-  #     - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+  #     - ./backend/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  #     - ./backend/docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
   #   depends_on: [prometheus]
   #   restart: unless-stopped

@@ -3,29 +3,29 @@ import { AuthProvider } from "./auth/AuthProvider";
 import { useAuth } from "./auth/useAuth";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
-import { Proyectos } from "./pages/Proyectos";
-import { Recursos } from "./pages/Recursos";
+import { Projects } from "./pages/Projects";
+import { Resources } from "./pages/Resources";
 
-function Cargando() {
+function Loading() {
   return (
     <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-      Cargando sesion...
+      Loading session...
     </div>
   );
 }
 
-function Rutas() {
+function AppRoutes() {
   const { ready, authenticated } = useAuth();
-  if (!ready) return <Cargando />;
-  if (!authenticated) return <Cargando />; // login-required ya redirigio, no deberia caer aca
+  if (!ready) return <Loading />;
+  if (!authenticated) return <Loading />; // login-required ya redirigio, no deberia caer aca
 
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/proyectos" element={<Proyectos />} />
-          <Route path="/recursos" element={<Recursos />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/resources" element={<Resources />} />
           {/* cualquier ruta vieja o futura cae al dashboard mientras tanto */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
@@ -37,7 +37,7 @@ function Rutas() {
 export default function App() {
   return (
     <AuthProvider>
-      <Rutas />
+      <AppRoutes />
     </AuthProvider>
   );
 }

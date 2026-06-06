@@ -9,15 +9,15 @@ import {
 } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 
-// "Analitica" oculta hasta que se libere su vista (proxima iteracion).
+// "Analytics" oculta hasta que se libere su vista (proxima iteracion).
 const items = [
   { to: "/",          label: "Dashboard", Icon: LayoutDashboard },
-  { to: "/proyectos", label: "Proyectos", Icon: FolderKanban },
-  { to: "/recursos",  label: "Recursos",  Icon: Users },
+  { to: "/projects",  label: "Projects",  Icon: FolderKanban },
+  { to: "/resources", label: "Resources", Icon: Users },
 ];
 
-function iniciales(nombre: string) {
-  return nombre
+function initials(name: string) {
+  return name
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -74,8 +74,8 @@ export function Sidebar() {
 
 function UserBlock() {
   const { fullName, username, roles, logout } = useAuth();
-  const rolPrincipal = roles[0] ?? "";
-  const display = fullName || username || "usuario";
+  const mainRole = roles[0] ?? "";
+  const display = fullName || username || "user";
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -96,12 +96,12 @@ function UserBlock() {
         className="w-full flex items-center gap-2.5 rounded px-2 py-1.5 hover:bg-surface2 transition-colors text-left"
       >
         <div className="w-7 h-7 rounded-full bg-[#1F1F1F] text-fg text-[11px] font-semibold flex items-center justify-center shrink-0">
-          {iniciales(display)}
+          {initials(display)}
         </div>
         <div className="flex-1 min-w-0 leading-tight">
           <div className="text-[13px] text-fg truncate">{display}</div>
           <div className="text-[11px] text-fg-muted truncate">
-            {rolPrincipal ? `@${username} · ${rolPrincipal}` : `@${username}`}
+            {mainRole ? `@${username} · ${mainRole}` : `@${username}`}
           </div>
         </div>
         <ChevronsUpDown size={14} className="text-fg-subtle shrink-0" />
@@ -115,7 +115,7 @@ function UserBlock() {
             className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-fg-muted hover:bg-surface2 hover:text-fg transition-colors"
           >
             <LogOut size={14} />
-            <span>Salir</span>
+            <span>Log out</span>
           </button>
         </div>
       )}

@@ -1,19 +1,19 @@
 import { useLocation } from "react-router-dom";
 
-const titulos: Record<string, string> = {
+const titles: Record<string, string> = {
   "/":          "Dashboard",
-  "/proyectos": "Proyectos",
-  "/recursos":  "Recursos",
-  "/analitica": "Analitica",
+  "/projects":  "Projects",
+  "/resources": "Resources",
+  "/analytics": "Analytics",
 };
 
 export function Topbar() {
   const { pathname } = useLocation();
-  const titulo = titulos[pathname] ?? pathname.replace("/", "");
+  const title = titles[pathname] ?? pathname.replace("/", "");
 
   return (
     <header className="h-12 flex items-center justify-between px-6 border-b border-border bg-bg">
-      <h1 className="text-[13px] font-medium text-fg">{titulo}</h1>
+      <h1 className="text-[13px] font-medium text-fg">{title}</h1>
       {/* slot derecho reservado: acciones globales (search, notif...) entran aca cuando existan */}
       <div />
     </header>

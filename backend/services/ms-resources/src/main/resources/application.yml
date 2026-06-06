@@ -1,0 +1,48 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: ms-resources
+  datasource:
+    url: jdbc:postgresql://${DB_RESOURCES_HOST:db-resources}:5432/${DB_RESOURCES_NAME:resources}
+    username: ${DB_RESOURCES_USER:resources_user}
+    password: ${DB_RESOURCES_PASSWORD:resources_dev}
+  jpa:
+    hibernate:
+      # Schema is owned by Flyway (src/main/resources/db/migration).
+      # Hibernate only checks that the entity matches the live schema.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://eureka-server:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN

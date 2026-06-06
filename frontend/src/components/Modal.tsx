@@ -43,7 +43,7 @@ export function Modal({ open, onClose, title, children, footer }: Props) {
             type="button"
             onClick={onClose}
             className="text-fg-muted hover:text-fg hover:bg-surface2 rounded p-1 transition-colors"
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             <X size={16} />
           </button>
@@ -100,7 +100,7 @@ type ConfirmProps = {
 
 export function ConfirmDialog({
   open, onClose, onConfirm, title, message,
-  confirmText = "Confirmar", cancelText = "Cancelar",
+  confirmText = "Confirm", cancelText = "Cancel",
   tone = "danger", busy = false, error = null,
 }: ConfirmProps) {
   const btnCls = tone === "danger"
