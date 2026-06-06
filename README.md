@@ -69,7 +69,6 @@ graph TB
     DBKC[(db-keycloak)]
     GW[API Gateway]
     BFF[BFF]
-    EUREKA[Eureka]
     MSP[ms-projects]
     MSR[ms-resources]
     MSA[ms-analytics]
@@ -89,17 +88,10 @@ graph TB
     MSR --> DBR
     MSA --> DBA
 
-    GW -.-> EUREKA
-    BFF -.-> EUREKA
-    MSP -.-> EUREKA
-    MSR -.-> EUREKA
-    MSA -.-> EUREKA
-
     style FE fill:#61DAFB,color:#000
     style KC fill:#4D4D4D,color:#fff
     style GW fill:#6DB33F,color:#fff
     style BFF fill:#6DB33F,color:#fff
-    style EUREKA fill:#E0A800,color:#000
     style MSP fill:#6DB33F,color:#fff
     style MSR fill:#6DB33F,color:#fff
     style MSA fill:#6DB33F,color:#fff
