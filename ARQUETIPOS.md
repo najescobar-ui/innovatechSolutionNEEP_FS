@@ -9,7 +9,7 @@ Este proyecto **no usa arquetipos Maven generadores** (`mvn archetype:generate` 
 - Configura plugins de build (compiler con annotation processors de Lombok + MapStruct, spring-boot-maven-plugin).
 - Sirve como base obligatoria para crear un nuevo microservicio: el módulo nuevo solo declara `<parent>` y obtiene **todo el stack heredado**.
 
-Si en algún momento se requiere un arquetipo generador real, se puede empaquetar el contenido de `servicios/ms-proyectos/` como `archetype-resources/` y publicarlo, pero hoy no es necesario.
+Si en algún momento se requiere un arquetipo generador real, se puede empaquetar el contenido de `services/ms-projects/` como `archetype-resources/` y publicarlo, pero hoy no es necesario.
 
 ## POM padre — `pom.xml`
 
@@ -49,20 +49,20 @@ Hereda directamente de `spring-boot-starter-parent:4.0.0`.
   <module>eureka-server</module>
   <module>api-gateway</module>
   <module>bff</module>
-  <module>servicios/ms-proyectos</module>
-  <module>servicios/ms-recursos</module>
-  <module>servicios/ms-analitica</module>
+  <module>services/ms-projects</module>
+  <module>services/ms-resources</module>
+  <module>services/ms-analytics</module>
 </modules>
 ```
 
 ## Cómo usar el "arquetipo" para crear un nuevo componente
 
-Pasos para agregar un microservicio nuevo (ej. `ms-notificaciones`):
+Pasos para agregar un microservicio nuevo (ej. `ms-notifications`):
 
 ### 1. Crear la estructura de carpetas
 
 ```
-servicios/ms-notificaciones/
+services/ms-notifications/
 ├── src/main/java/cl/duoc/innovatech/notificaciones/
 │   └── MsNotificacionesApplication.java
 ├── src/main/resources/
@@ -86,7 +86,7 @@ servicios/ms-notificaciones/
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ms-notificaciones</artifactId>
+    <artifactId>ms-notifications</artifactId>
     <name>Innovatech Solutions :: MS Notificaciones</name>
 
     <dependencies>
@@ -94,7 +94,7 @@ servicios/ms-notificaciones/
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- Si necesita persistencia, copiar el bloque de ms-proyectos -->
+        <!-- Si necesita persistencia, copiar el bloque de ms-projects -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -131,7 +131,7 @@ Editar el `pom.xml` raíz:
 ```xml
 <modules>
   ...
-  <module>servicios/ms-notificaciones</module>
+  <module>services/ms-notifications</module>
 </modules>
 ```
 
@@ -161,7 +161,7 @@ server:
 
 spring:
   application:
-    name: ms-notificaciones
+    name: ms-notifications
 
 eureka:
   client:
@@ -181,17 +181,17 @@ management:
 
 ### 5. Dockerfile (copiar de un microservicio existente)
 
-Multi-stage `eclipse-temurin:25-jdk` para build → `eclipse-temurin:25-jre-alpine` para runtime. Plantilla idéntica a la de `ms-proyectos/Dockerfile`.
+Multi-stage `eclipse-temurin:25-jdk` para build → `eclipse-temurin:25-jre-alpine` para runtime. Plantilla idéntica a la de `ms-projects/Dockerfile`.
 
 ### 6. Service en `docker-compose.yml`
 
 ```yaml
-ms-notificaciones:
+ms-notifications:
   build:
     context: .
-    dockerfile: servicios/ms-notificaciones/Dockerfile
-  image: innovatech/ms-notificaciones:dev
-  container_name: ms-notificaciones
+    dockerfile: services/ms-notifications/Dockerfile
+  image: innovatech/ms-notifications:dev
+  container_name: ms-notifications
   networks: [innovatech-net]
   ports: ["8085:8085"]
   environment:
@@ -205,10 +205,10 @@ ms-notificaciones:
 ### 7. Build y verificar
 
 ```bash
-docker compose build ms-notificaciones
-docker compose up -d ms-notificaciones
+docker compose build ms-notifications
+docker compose up -d ms-notifications
 # verifica que se registro:
-curl http://localhost:8761/eureka/apps | grep ms-notificaciones
+curl http://localhost:8761/eureka/apps | grep ms-notifications
 ```
 
 ## Convenciones que hereda automáticamente cualquier módulo nuevo
@@ -242,7 +242,7 @@ innovatech-parent (pom.xml raíz)
         ├─ eureka-server
         ├─ api-gateway
         ├─ bff
-        ├─ servicios/ms-proyectos
-        ├─ servicios/ms-recursos
-        └─ servicios/ms-analitica
+        ├─ services/ms-projects
+        ├─ services/ms-resources
+        └─ services/ms-analytics
 ```

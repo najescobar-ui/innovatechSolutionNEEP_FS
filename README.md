@@ -46,13 +46,13 @@ están distribuidos en distintas ubicaciones geográficas.
 | Keycloak | keycloak | 8080 | http://localhost:8080 |
 | API Gateway | api-gateway | 9000 | http://localhost:9000 |
 | BFF | bff | 8084 | — |
-| ms-proyectos | ms-proyectos | 8081 | — |
-| ms-recursos | ms-recursos | 8082 | — |
-| ms-analitica | ms-analitica | 8083 | — |
+| ms-projects | ms-projects | 8081 | — |
+| ms-resources | ms-resources | 8082 | — |
+| ms-analytics | ms-analytics | 8083 | — |
 | Eureka Server | eureka-server | 8761 | http://localhost:8761 |
-| DB Proyectos | db-proyectos | 5432 | — |
-| DB Recursos | db-recursos | 5433 | — |
-| DB Analítica | db-analitica | 5434 | — |
+| DB Projects | db-projects | 5432 | — |
+| DB Resources | db-resources | 5433 | — |
+| DB Analytics | db-analytics | 5434 | — |
 | DB Keycloak | db-keycloak | 5435 | — |
 
 Toda la comunicación interna ocurre sobre la red Docker `innovatech-net`.
@@ -87,15 +87,15 @@ graph TB
     end
 
     subgraph "Microservicios"
-        MS1[ms-proyectos<br/>:8081]
-        MS2[ms-recursos<br/>:8082]
-        MS3[ms-analitica<br/>:8083<br/>Scheduled snapshots]
+        MS1[ms-projects<br/>:8081]
+        MS2[ms-resources<br/>:8082]
+        MS3[ms-analytics<br/>:8083<br/>Scheduled snapshots]
     end
 
     subgraph "Persistencia"
-        DB1[(db-proyectos<br/>:5432)]
-        DB2[(db-recursos<br/>:5433)]
-        DB3[(db-analitica<br/>kpi_snapshots<br/>:5434)]
+        DB1[(db-projects<br/>:5432)]
+        DB2[(db-resources<br/>:5433)]
+        DB3[(db-analytics<br/>kpi_snapshots<br/>:5434)]
     end
 
     User --> FE
@@ -136,9 +136,9 @@ graph TB
 
 | Microservicio | Responsabilidad funcional |
 |---|---|
-| **ms-proyectos** | Core operativo. CRUD de proyectos: `GET /proyectos`, `GET /proyectos/{id}`, `POST /proyectos`, `PATCH /proyectos/{id}` (estado/responsable) y `DELETE /proyectos/{id}`. Migraciones Flyway. |
-| **ms-recursos** | Gestión del talento. CRUD: `GET`, `GET /{id}`, `POST`, `PATCH /{id}` (cambia flag `activo`), `DELETE /{id}`. Validación de email único. |
-| **ms-analitica** | Agregador de KPIs cross-org **con persistencia de snapshots históricos** (antes era stateless, decisión revisada el 2026-05-16). Consume `ms-proyectos`/`ms-recursos` vía REST + Eureka, nunca conecta directo a sus BDs. Expone `/analitica/kpis` (snapshot actual) y `/analitica/kpis/historico?desde&hasta&puntos` (serie temporal con tope de 30 días). |
+| **ms-projects** | Core operativo. CRUD de proyectos: `GET /projects`, `GET /projects/{id}`, `POST /projects`, `PATCH /projects/{id}` (estado/responsable) y `DELETE /projects/{id}`. Migraciones Flyway. |
+| **ms-resources** | Gestión del talento. CRUD: `GET`, `GET /{id}`, `POST`, `PATCH /{id}` (cambia flag `active`), `DELETE /{id}`. Validación de email único. |
+| **ms-analytics** | Agregador de KPIs cross-org **con persistencia de snapshots históricos** (antes era stateless, decisión revisada el 2026-05-16). Consume `ms-projects`/`ms-resources` vía REST + Eureka, nunca conecta directo a sus BDs. Expone `/analytics/kpis` (snapshot actual) y `/analytics/kpis/history?from&to&points` (serie temporal con tope de 30 días). |
 
 ## Frontend
 
@@ -179,7 +179,7 @@ sequenceDiagram
 
 ## Flujo End-to-End de un Request
 
-Caso: usuario DIR solicita su dashboard. El BFF orquesta llamadas a `ms-proyectos` (lista para hitos/en-curso) y a `ms-analitica` (KPIs agregados).
+Caso: usuario DIR solicita su dashboard. El BFF orquesta llamadas a `ms-projects` (lista para hitos/en-curso) y a `ms-analytics` (KPIs agregados).
 
 ```mermaid
 sequenceDiagram
@@ -189,10 +189,10 @@ sequenceDiagram
     participant KC as Keycloak
     participant BFF
     participant E as Eureka
-    participant P as ms-proyectos
-    participant A as ms-analitica
-    participant DBP as db-proyectos
-    participant DBA as db-analitica
+    participant P as ms-projects
+    participant A as ms-analytics
+    participant DBP as db-projects
+    participant DBA as db-analytics
 
     FE->>GW: GET /api/dashboard<br/>Authorization: Bearer JWT
     GW->>KC: GET /realms/innovatech/protocol/openid-connect/certs
@@ -203,14 +203,14 @@ sequenceDiagram
     GW->>BFF: GET /dashboard
 
     par Circuit Breaker por endpoint
-        BFF->>P: GET /proyectos
+        BFF->>P: GET /projects
         P->>DBP: SELECT * FROM proyectos
         DBP-->>P: ResultSet
         P-->>BFF: List<ProyectoDto>
     and
-        BFF->>A: GET /analitica/kpis
+        BFF->>A: GET /analytics/kpis
         A->>DBA: (no consulta historicos aqui)
-        A->>P: GET /proyectos (snapshot fuente)
+        A->>P: GET /projects (snapshot fuente)
         A-->>BFF: KpiResponse (utilizacion, activos, atrasados, breakdowns)
     end
 
@@ -222,7 +222,7 @@ sequenceDiagram
 
 ## Snapshots Históricos de KPI (decisión 2026-05-16)
 
-`ms-analitica` toma snapshots periódicos de los KPIs agregados y los persiste en `db-analitica` (tabla `kpi_snapshots`). Permite series temporales para sparklines, deltas vs períodos anteriores y filtros por rango de fechas.
+`ms-analytics` toma snapshots periódicos de los KPIs agregados y los persiste en `db-analytics` (tabla `kpi_snapshots`). Permite series temporales para sparklines, deltas vs períodos anteriores y filtros por rango de fechas.
 
 ```mermaid
 sequenceDiagram
@@ -230,15 +230,15 @@ sequenceDiagram
     participant CR as Scheduler<br/>(cron 0 */5 * * * *)
     participant S as KpiSnapshotService
     participant K as KpiService
-    participant P as ms-proyectos
-    participant R as ms-recursos
-    participant DBA as db-analitica
+    participant P as ms-projects
+    participant R as ms-resources
+    participant DBA as db-analytics
 
     Note over S: PostConstruct: si la tabla esta vacia,<br/>backfill 12 puntos semanales sinteticos (jitter +/- 15 por ciento)<br/>para tener sparkline desde dia 1
     CR->>S: capturar()
     S->>K: calcular()
-    K->>P: GET /proyectos
-    K->>R: GET /recursos
+    K->>P: GET /projects
+    K->>R: GET /resources
     P-->>K: List<ProyectoView>
     R-->>K: List<RecursoView>
     Note over K: Calcula proyectos activos, atrasados,<br/>capacidad, % utilización (promedio/40h)
@@ -247,7 +247,7 @@ sequenceDiagram
     DBA-->>S: OK
 ```
 
-**Endpoint `GET /api/kpis/historico`**:
+**Endpoint `GET /api/kpis/history`**:
 
 | Query param | Descripción | Default |
 |-------------|-------------|---------|
@@ -264,9 +264,9 @@ Todos los componentes server-side se registran en Eureka al arrancar, y consulta
 ```mermaid
 graph LR
     subgraph "Registro al arrancar"
-        S1[ms-proyectos] -->|POST /eureka/apps| E[(Eureka<br/>:8761)]
-        S2[ms-recursos] -->|POST /eureka/apps| E
-        S3[ms-analitica] -->|POST /eureka/apps| E
+        S1[ms-projects] -->|POST /eureka/apps| E[(Eureka<br/>:8761)]
+        S2[ms-resources] -->|POST /eureka/apps| E
+        S3[ms-analytics] -->|POST /eureka/apps| E
         S4[bff] -->|POST /eureka/apps| E
         S5[api-gateway] -->|POST /eureka/apps| E
     end
@@ -281,7 +281,7 @@ graph LR
 
 ## Manejo de Fallos: Circuit Breaker (Resilience4j)
 
-Cada llamada saliente del BFF está envuelta en un Circuit Breaker independiente (uno por endpoint downstream). Si `ms-analitica` no responde en 3s, el breaker se abre y el BFF devuelve un fallback **explícito** (`"datos no disponibles"`) sin afectar a los otros servicios.
+Cada llamada saliente del BFF está envuelta en un Circuit Breaker independiente (uno por endpoint downstream). Si `ms-analytics` no responde en 3s, el breaker se abre y el BFF devuelve un fallback **explícito** (`"datos no disponibles"`) sin afectar a los otros servicios.
 
 ```mermaid
 stateDiagram-v2
@@ -312,20 +312,20 @@ stateDiagram-v2
 
 ## Aislamiento de Datos
 
-Cada microservicio accede **únicamente** a su propia BD. `ms-analitica` consume datos de proyectos/recursos por REST (vía Eureka), nunca conectándose directo a sus BDs. Su BD propia solo aloja **snapshots agregados**.
+Cada microservicio accede **únicamente** a su propia BD. `ms-analytics` consume datos de proyectos/resources por REST (vía Eureka), nunca conectándose directo a sus BDs. Su BD propia solo aloja **snapshots agregados**.
 
 ```mermaid
 graph TB
     subgraph "Permitido"
-        A1[ms-proyectos] --> D1[(db-proyectos)]
-        A2[ms-recursos] --> D2[(db-recursos)]
-        A3[ms-analitica] --> D3[(db-analitica<br/>kpi_snapshots)]
+        A1[ms-projects] --> D1[(db-projects)]
+        A2[ms-resources] --> D2[(db-resources)]
+        A3[ms-analytics] --> D3[(db-analytics<br/>kpi_snapshots)]
         A3 -.REST.-> A1
         A3 -.REST.-> A2
     end
 
     subgraph "Prohibido"
-        B1[ms-analitica] -.X.-> D4[(db-proyectos)]
+        B1[ms-analytics] -.X.-> D4[(db-projects)]
     end
 
     style B1 fill:#E74C3C,color:#fff
@@ -341,9 +341,9 @@ graph TB
 | **Factory Method** | `bff/service/DashboardDtoFactory.java` | Construye `PMDashboardDto`/`DevDashboardDto`/`DirDashboardDto` según rol del JWT (sealed interface). |
 | **Circuit Breaker** | `bff/` (Resilience4j) | Uno por endpoint downstream. Timeout 3s, ventana de 10 req, 30s en OPEN. |
 | **Service Discovery** | Todos los Spring Boot | Eureka client + server. Sin URLs hardcodeadas. |
-| **Repository Pattern** | Cada `ms-*` y `ms-analitica` | Spring Data JPA, interfaces `*Repository`. |
+| **Repository Pattern** | Cada `ms-*` y `ms-analytics` | Spring Data JPA, interfaces `*Repository`. |
 | **Database per Service** | Cada `ms-*` | PostgreSQL independiente. |
-| **Snapshot / Periodic Aggregation** | `ms-analitica` | `@Scheduled` toma snapshots cada N min para series temporales (sparkline, deltas). |
+| **Snapshot / Periodic Aggregation** | `ms-analytics` | `@Scheduled` toma snapshots cada N min para series temporales (sparkline, deltas). |
 
 ## Cómo Levantar el Entorno Local
 
@@ -372,7 +372,7 @@ open http://localhost:8761
 ```bash
 docker compose ps                       # estado de los contenedores
 docker compose logs -f bff              # logs en vivo
-docker compose up -d --no-deps --build ms-analitica  # rebuild de un servicio
+docker compose up -d --no-deps --build ms-analytics  # rebuild de un servicio
 docker compose down                     # bajar (preserva volúmenes/datos)
 docker compose down -v                  # bajar BORRANDO datos de las BDs
 ```
@@ -390,11 +390,11 @@ docker compose down -v                  # bajar BORRANDO datos de las BDs
 ## Convenciones del Proyecto
 
 **Naming:**
-- Módulos Maven: kebab-case (`ms-proyectos`, `api-gateway`).
+- Módulos Maven: kebab-case (`ms-projects`, `api-gateway`).
 - `groupId`: `cl.duoc.innovatech`. Paquetes: `cl.duoc.innovatech.<modulo>`.
 - Imágenes Docker: `innovatech/<servicio>:dev`.
 - Tablas SQL: `snake_case` plural.
-- Endpoints REST: kebab-case plural (`/proyectos`, `/recursos`, `/kpis/historico`).
+- Endpoints REST: kebab-case plural (`/projects`, `/resources`, `/kpis/history`).
 
 **Git:**
 - Ramas: `PROD` (estable) ← `main` (deployable) ← `dev` (trabajo activo) ← `feature/*`, `fix/*`.
@@ -414,7 +414,7 @@ El diseño sigue los principios de **Ethically Aligned Design (IEEE)**, dado que
 
 | Principio | Implementación en la plataforma |
 |---|---|
-| **Protección de datos y privacidad** | Control de acceso por roles vía Keycloak. JWT validado en cada request. Minimización: cada microservicio solo accede a los datos que necesita. `ms-analitica` trabaja con métricas agregadas (counts, ratios), no con datos individuales. |
+| **Protección de datos y privacidad** | Control de acceso por roles vía Keycloak. JWT validado en cada request. Minimización: cada microservicio solo accede a los datos que necesita. `ms-analytics` trabaja con métricas agregadas (counts, ratios), no con datos individuales. |
 | **Transparencia y trazabilidad** | Logs estructurados en cada servicio. Endpoints Actuator expuestos para auditoría. Snapshots históricos permiten reconstruir el estado pasado de los KPIs. |
 | **Resiliencia ética** | Cuando un servicio cae, el Circuit Breaker hace que el BFF retorne `"datos no disponibles"` antes que devolver datos erróneos. |
 | **Accesibilidad** | Frontend con foco-visible, `aria-label` en botones de acciones, contraste WCAG AA en la paleta dark (verificado para `fg`/`fg-muted` sobre `bg`). |
@@ -453,4 +453,4 @@ Selección curada de proyectos open source con stack o patrones equivalentes (Sp
 
 ---
 
-_Documentación actualizada el 2026-05-16. Refleja el estado tras incorporar persistencia histórica en `ms-analitica`, frontend completo (Dashboard real, Proyectos y Recursos con CRUD parcial), filtro de fechas en Dashboard y branding (logo + tipografía corporativa). La vista **Analítica** queda planificada para la siguiente iteración._
+_Documentación actualizada el 2026-05-16. Refleja el estado tras incorporar persistencia histórica en `ms-analytics`, frontend completo (Dashboard real, Proyectos y Recursos con CRUD parcial), filtro de fechas en Dashboard y branding (logo + tipografía corporativa). La vista **Analítica** queda planificada para la siguiente iteración._
