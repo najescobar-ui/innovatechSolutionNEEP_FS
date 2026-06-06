@@ -68,21 +68,16 @@ graph TB
     KC[Keycloak]
     GW[API Gateway]
     BFF[BFF]
-    EUREKA[Eureka]
-
-    subgraph Microservicios
-        MSP[ms-projects]
-        MSR[ms-resources]
-        MSA[ms-analytics]
-    end
-
+    MSP[ms-projects]
+    MSR[ms-resources]
+    MSA[ms-analytics]
     DBP[(BD Projects)]
     DBR[(BD Resources)]
     DBA[(BD Analytics)]
 
     User --> FE
-    FE --> KC
     FE --> GW
+    FE --> KC
     GW --> BFF
     BFF --> MSP
     BFF --> MSR
@@ -90,14 +85,6 @@ graph TB
     MSP --> DBP
     MSR --> DBR
     MSA --> DBA
-    MSA -.REST.-> MSP
-    MSA -.REST.-> MSR
-
-    GW -.discovery.-> EUREKA
-    BFF -.discovery.-> EUREKA
-    MSP -.register.-> EUREKA
-    MSR -.register.-> EUREKA
-    MSA -.register.-> EUREKA
 
     style FE fill:#61DAFB,color:#000
     style KC fill:#4D4D4D,color:#fff
