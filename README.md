@@ -59,6 +59,58 @@ Toda la comunicación interna ocurre sobre la red Docker `innovatech-net`.
 
 > **Pendientes de orquestación** (placeholders comentados en `docker-compose.yml`): MailHog (notificaciones SMTP dev), Prometheus 2.51 y Grafana 10.4 para observabilidad. Los servicios Spring ya exponen `/actuator/prometheus`, falta solo descomentar el bloque y proveer la config.
 
+## Arquitectura de Alto Nivel
+
+```mermaid
+graph TB
+    User([Usuario])
+    FE[Frontend]
+    KC[Keycloak]
+    GW[API Gateway]
+    BFF[BFF]
+    EUREKA[Eureka]
+
+    subgraph Microservicios
+        MSP[ms-projects]
+        MSR[ms-resources]
+        MSA[ms-analytics]
+    end
+
+    DBP[(BD Projects)]
+    DBR[(BD Resources)]
+    DBA[(BD Analytics)]
+
+    User --> FE
+    FE --> KC
+    FE --> GW
+    GW --> BFF
+    BFF --> MSP
+    BFF --> MSR
+    BFF --> MSA
+    MSP --> DBP
+    MSR --> DBR
+    MSA --> DBA
+    MSA -.REST.-> MSP
+    MSA -.REST.-> MSR
+
+    GW -.discovery.-> EUREKA
+    BFF -.discovery.-> EUREKA
+    MSP -.register.-> EUREKA
+    MSR -.register.-> EUREKA
+    MSA -.register.-> EUREKA
+
+    style FE fill:#61DAFB,color:#000
+    style KC fill:#4D4D4D,color:#fff
+    style GW fill:#6DB33F,color:#fff
+    style BFF fill:#6DB33F,color:#fff
+    style MSP fill:#6DB33F,color:#fff
+    style MSR fill:#6DB33F,color:#fff
+    style MSA fill:#6DB33F,color:#fff
+    style DBP fill:#336791,color:#fff
+    style DBR fill:#336791,color:#fff
+    style DBA fill:#336791,color:#fff
+```
+
 ## Arquitectura General
 
 ```mermaid
