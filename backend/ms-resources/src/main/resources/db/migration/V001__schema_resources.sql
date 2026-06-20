@@ -1,5 +1,5 @@
 -- Initial schema for ms-recursos.
--- Mirrors cl.duoc.innovatech.resources.entity.Resource.
+-- Mirrors com.duoc.resources.entity.Resource.
 
 CREATE TABLE resources (
     id              BIGSERIAL    PRIMARY KEY,

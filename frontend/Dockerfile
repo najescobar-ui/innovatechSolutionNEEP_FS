@@ -9,6 +9,7 @@ RUN npm ci
 # fuente
 COPY tsconfig.json tsconfig.node.json vite.config.ts tailwind.config.ts postcss.config.js index.html ./
 COPY src ./src
+COPY public ./public
 
 # Vite inyecta las VITE_* en build-time. Los defaults apuntan al host
 # (localhost) porque el bundle corre en el navegador, no dentro de la red Docker.

@@ -1,4 +1,4 @@
--- Tasks of a project. Mirrors cl.duoc.innovatech.projects.entity.Task.
+-- Tasks of a project. Mirrors com.duoc.projects.entity.Task.
 -- assignee_resource_id is a logical reference to ms-resources (no physical
 -- cross-service FK), same convention as projects.owner_id.
 
