@@ -224,14 +224,14 @@ endobj
 41 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_01_System_Context.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_01_System_Context.png)
 >> /Border [ 0 0 0 ] /Rect [ 299.1522 502.3969 463.7817 514.9969 ] /Subtype /Link /Type /Annot
 >>
 endobj
 42 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_01_System_Context.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_01_System_Context.png)
 >> /Border [ 0 0 0 ] /Rect [ 310.0407 287.1969 474.6702 299.7969 ] /Subtype /Link /Type /Annot
 >>
 endobj
@@ -248,7 +248,7 @@ endobj
 44 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_02_Container.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_02_Container.png)
 >> /Border [ 0 0 0 ] /Rect [ 270.8967 557.5969 403.5327 570.1969 ] /Subtype /Link /Type /Annot
 >>
 endobj
@@ -260,7 +260,7 @@ endobj
 46 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_08_Component_BFF.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_08_Component_BFF.png)
 >> /Border [ 0 0 0 ] /Rect [ 273.6372 323.5969 441.8787 336.1969 ] /Subtype /Link /Type /Annot
 >>
 endobj
@@ -287,21 +287,21 @@ endobj
 49 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_03_Patron_Repository.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_03_Patron_Repository.png)
 >> /Border [ 0 0 0 ] /Rect [ 87.2622 606.5969 223.0587 619.1969 ] /Subtype /Link /Type /Annot
 >>
 endobj
 50 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_04_Patron_FactoryMethod.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_04_Patron_FactoryMethod.png)
 >> /Border [ 0 0 0 ] /Rect [ 254.6637 392.5969 414.1377 405.1969 ] /Subtype /Link /Type /Annot
 >>
 endobj
 51 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_05_Patron_CircuitBreaker.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_05_Patron_CircuitBreaker.png)
 >> /Border [ 0 0 0 ] /Rect [ 361.4802 148.0969 517.3422 160.6969 ] /Subtype /Link /Type /Annot
 >>
 endobj
@@ -318,14 +318,14 @@ endobj
 53 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_06_Patron_APIGateway.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_06_Patron_APIGateway.png)
 >> /Border [ 0 0 0 ] /Rect [ 140.5812 650.5969 285.8697 663.1969 ] /Subtype /Link /Type /Annot
 >>
 endobj
 54 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_07_Patron_BFF.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_07_Patron_BFF.png)
 >> /Border [ 0 0 0 ] /Rect [ 127.4037 506.0969 231.3747 518.6969 ] /Subtype /Link /Type /Annot
 >>
 endobj
@@ -342,7 +342,7 @@ endobj
 56 0 obj
 <<
 /A <<
-/S /URI /Type /Action /URI (imagenes/C4_09_Modelo_Datos.png)
+/S /URI /Type /Action /URI (https://github.com/najescobar-ui/innovatechSolutionNEEP_FS/blob/main/docs/imagenes/C4_09_Modelo_Datos.png)
 >> /Border [ 0 0 0 ] /Rect [ 246.5472 629.5969 376.6107 642.1969 ] /Subtype /Link /Type /Annot
 >>
 endobj
@@ -596,7 +596,7 @@ endobj
 endobj
 72 0 obj
 <<
-/Author (Najeeb Escobar P\351rez) /CreationDate (D:20260620125509-04'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260620125509-04'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+/Author (Najeeb Escobar P\351rez) /CreationDate (D:20260620134246-04'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260620134246-04'00') /Producer (ReportLab PDF Library - \(opensource\)) 
   /Subject (\(unspecified\)) /Title (Informe tecnico - Innovatech Solutions) /Trapped /False
 >>
 endobj
@@ -804,69 +804,69 @@ xref
 0000126076 00000 n 
 0000126224 00000 n 
 0000126685 00000 n 
-0000126871 00000 n 
-0000127057 00000 n 
-0000127289 00000 n 
-0000127470 00000 n 
-0000127576 00000 n 
-0000127761 00000 n 
-0000127993 00000 n 
-0000128199 00000 n 
-0000128387 00000 n 
-0000128579 00000 n 
-0000128772 00000 n 
-0000129011 00000 n 
-0000129200 00000 n 
-0000129382 00000 n 
-0000129614 00000 n 
-0000129798 00000 n 
-0000130023 00000 n 
-0000130230 00000 n 
-0000131001 00000 n 
-0000140730 00000 n 
-0000140970 00000 n 
-0000141779 00000 n 
-0000142536 00000 n 
-0000151508 00000 n 
-0000151736 00000 n 
-0000152463 00000 n 
-0000153237 00000 n 
-0000162364 00000 n 
-0000162595 00000 n 
-0000163277 00000 n 
-0000163364 00000 n 
-0000163680 00000 n 
-0000163755 00000 n 
-0000163848 00000 n 
-0000163997 00000 n 
-0000164098 00000 n 
-0000164216 00000 n 
-0000164320 00000 n 
-0000164438 00000 n 
-0000164565 00000 n 
-0000164723 00000 n 
-0000164819 00000 n 
-0000164932 00000 n 
-0000165046 00000 n 
-0000165156 00000 n 
-0000165283 00000 n 
-0000165397 00000 n 
-0000165510 00000 n 
-0000165630 00000 n 
-0000165742 00000 n 
-0000165858 00000 n 
-0000166558 00000 n 
-0000167719 00000 n 
-0000170516 00000 n 
-0000173514 00000 n 
-0000176483 00000 n 
-0000179284 00000 n 
-0000182562 00000 n 
-0000185958 00000 n 
+0000126945 00000 n 
+0000127205 00000 n 
+0000127437 00000 n 
+0000127692 00000 n 
+0000127798 00000 n 
+0000128057 00000 n 
+0000128289 00000 n 
+0000128495 00000 n 
+0000128757 00000 n 
+0000129023 00000 n 
+0000129290 00000 n 
+0000129529 00000 n 
+0000129792 00000 n 
+0000130048 00000 n 
+0000130280 00000 n 
+0000130538 00000 n 
+0000130763 00000 n 
+0000130970 00000 n 
+0000131741 00000 n 
+0000141470 00000 n 
+0000141710 00000 n 
+0000142519 00000 n 
+0000143276 00000 n 
+0000152248 00000 n 
+0000152476 00000 n 
+0000153203 00000 n 
+0000153977 00000 n 
+0000163104 00000 n 
+0000163335 00000 n 
+0000164017 00000 n 
+0000164104 00000 n 
+0000164420 00000 n 
+0000164495 00000 n 
+0000164588 00000 n 
+0000164737 00000 n 
+0000164838 00000 n 
+0000164956 00000 n 
+0000165060 00000 n 
+0000165178 00000 n 
+0000165305 00000 n 
+0000165463 00000 n 
+0000165559 00000 n 
+0000165672 00000 n 
+0000165786 00000 n 
+0000165896 00000 n 
+0000166023 00000 n 
+0000166137 00000 n 
+0000166250 00000 n 
+0000166370 00000 n 
+0000166482 00000 n 
+0000166598 00000 n 
+0000167298 00000 n 
+0000168459 00000 n 
+0000171256 00000 n 
+0000174254 00000 n 
+0000177223 00000 n 
+0000180024 00000 n 
+0000183302 00000 n 
+0000186698 00000 n 
 trailer
 <<
 /ID 
-[<732373bbeb8d0b9d540eb4a971142460><732373bbeb8d0b9d540eb4a971142460>]
+[<c6300f735235eb65f1c6c4a1bebc787a><c6300f735235eb65f1c6c4a1bebc787a>]
 % ReportLab generated PDF document -- digest (opensource)
 
 /Info 72 0 R
@@ -874,5 +874,5 @@ trailer
 /Size 101
 >>
 startxref
-187103
+187843
 %%EOF
