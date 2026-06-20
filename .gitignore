@@ -49,3 +49,9 @@ Thumbs.db
 
 # Backups temporales de drawio
 *.bkp
+
+# Insumos locales para generar el informe (no van al repo)
+docs/report.md
+docs/report.docx
+docs/build_report.py
+docs/assets/
