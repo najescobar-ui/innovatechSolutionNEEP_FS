@@ -1,20 +1,23 @@
 # Database per Service: una PostgreSQL por microservicio + la de Keycloak.
+# Cada base es un StatefulSet (carga con estado): identidad estable, arranque
+# ordenado y un PersistentVolume propio gestionado por volumeClaimTemplates.
+# Cada StatefulSet usa su Service headless (clusterIP: None) como serviceName.
 # ---------------- db-projects ----------------
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: db-projects-pvc
-spec:
-  accessModes: ["ReadWriteOnce"]
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Service
 metadata:
   name: db-projects
 spec:
+  clusterIP: None
+  selector: { app: db-projects }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-projects
+spec:
+  serviceName: db-projects
   replicas: 1
   selector:
     matchLabels: { app: db-projects }
@@ -35,34 +38,31 @@ spec:
             exec: { command: ["pg_isready", "-U", "projects_user", "-d", "projects"] }
             initialDelaySeconds: 10
             periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim: { claimName: db-projects-pvc }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: db-projects
-spec:
-  selector: { app: db-projects }
-  ports: [{ port: 5432, targetPort: 5432 }]
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
 ---
 # ---------------- db-resources ----------------
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: db-resources-pvc
-spec:
-  accessModes: ["ReadWriteOnce"]
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Service
 metadata:
   name: db-resources
 spec:
+  clusterIP: None
+  selector: { app: db-resources }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-resources
+spec:
+  serviceName: db-resources
   replicas: 1
   selector:
     matchLabels: { app: db-resources }
@@ -83,34 +83,31 @@ spec:
             exec: { command: ["pg_isready", "-U", "resources_user", "-d", "resources"] }
             initialDelaySeconds: 10
             periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim: { claimName: db-resources-pvc }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: db-resources
-spec:
-  selector: { app: db-resources }
-  ports: [{ port: 5432, targetPort: 5432 }]
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
 ---
 # ---------------- db-analytics ----------------
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: db-analytics-pvc
-spec:
-  accessModes: ["ReadWriteOnce"]
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Service
 metadata:
   name: db-analytics
 spec:
+  clusterIP: None
+  selector: { app: db-analytics }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-analytics
+spec:
+  serviceName: db-analytics
   replicas: 1
   selector:
     matchLabels: { app: db-analytics }
@@ -131,34 +128,31 @@ spec:
             exec: { command: ["pg_isready", "-U", "analytics_user", "-d", "analytics"] }
             initialDelaySeconds: 10
             periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim: { claimName: db-analytics-pvc }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: db-analytics
-spec:
-  selector: { app: db-analytics }
-  ports: [{ port: 5432, targetPort: 5432 }]
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
 ---
 # ---------------- db-keycloak ----------------
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: db-keycloak-pvc
-spec:
-  accessModes: ["ReadWriteOnce"]
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Service
 metadata:
   name: db-keycloak
 spec:
+  clusterIP: None
+  selector: { app: db-keycloak }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-keycloak
+spec:
+  serviceName: db-keycloak
   replicas: 1
   selector:
     matchLabels: { app: db-keycloak }
@@ -179,14 +173,11 @@ spec:
             exec: { command: ["pg_isready", "-U", "keycloak", "-d", "keycloak"] }
             initialDelaySeconds: 10
             periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim: { claimName: db-keycloak-pvc }
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: db-keycloak
-spec:
-  selector: { app: db-keycloak }
-  ports: [{ port: 5432, targetPort: 5432 }]
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
