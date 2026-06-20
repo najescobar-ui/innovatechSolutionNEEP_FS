@@ -1,51 +1,39 @@
-<mxfile host="app.diagrams.net" modified="2026-04-10" agent="user" type="device">
-  <diagram name="C4 - System Context (v2)" id="c4-ctx-v2">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2026-06-20" agent="user" type="device">
+  <diagram name="C4 - System Context" id="c4-ctx-v3">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="&lt;b&gt;Diagrama C4 - System Context&lt;/b&gt;&lt;br&gt;Innovatech Solutions - Plataforma de Gestión Integral de Proyectos Tecnológicos&lt;br&gt;&lt;i&gt;Desplegado en Oracle Cloud (OKE) con monitoreo Prometheus + Grafana&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="title" value="&lt;b&gt;Diagrama C4 - System Context&lt;/b&gt;&lt;br&gt;Innovatech Solutions - Plataforma de gestión de proyectos, recursos y analítica&lt;br&gt;&lt;i&gt;Microservicios Spring Boot 4.0 / JDK 25 + React 18, desplegados en Kubernetes&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="300" y="20" width="1000" height="70" as="geometry" />
         </mxCell>
         <!-- Personas -->
-        <mxCell id="p_pm" value="&lt;b&gt;Gestor de Proyecto&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Planifica proyectos, asigna tareas, monitorea avance vía navegador web." style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
-          <mxGeometry x="120" y="120" width="200" height="180" as="geometry" />
+        <mxCell id="p_pm" value="&lt;b&gt;Project Manager (PM)&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Supervisa proyectos, ve tareas en riesgo e hitos próximos." style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
+          <mxGeometry x="80" y="130" width="200" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="p_dev" value="&lt;b&gt;Desarrollador / Equipo&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Backend, Frontend, DevOps, UX. Registra avances y colabora en proyectos." style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
-          <mxGeometry x="700" y="120" width="200" height="180" as="geometry" />
+        <mxCell id="p_dev" value="&lt;b&gt;Desarrollador (DEV)&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Ve sus tareas asignadas y los proyectos en los que participa." style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
+          <mxGeometry x="700" y="130" width="200" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="p_exec" value="&lt;b&gt;Director / Ejecutivo&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Consulta dashboards de KPIs y métricas para decisiones estratégicas." style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
-          <mxGeometry x="1280" y="120" width="200" height="180" as="geometry" />
+        <mxCell id="p_dir" value="&lt;b&gt;Directivo (DIR)&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Persona]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Consulta KPIs agregados: proyectos activos, utilización, alertas." style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#08427B;strokeColor=#073B6F;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="130" width="200" height="180" as="geometry" />
         </mxCell>
         <!-- Sistema Principal -->
-        <mxCell id="sys" value="&lt;b&gt;Plataforma Innovatech Solutions&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema de Software]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Plataforma de microservicios para gestión integral de proyectos.&lt;br&gt;Desplegada en &lt;b&gt;Oracle Kubernetes Engine (OKE)&lt;/b&gt;.&lt;br&gt;Stack: &lt;b&gt;Spring Boot 3.2 / JDK 21 LTS / React 18&lt;/b&gt;&lt;br&gt;Monitoreo: &lt;b&gt;Prometheus 2.x + Grafana&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=12;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
-          <mxGeometry x="480" y="420" width="640" height="220" as="geometry" />
+        <mxCell id="sys" value="&lt;b&gt;Plataforma Innovatech Solutions&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema de Software]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Gestiona proyectos, tareas, recursos y KPIs, con vistas por rol.&lt;br&gt;Arquitectura de microservicios sobre &lt;b&gt;Spring Boot 4.0 / JDK 25&lt;/b&gt;&lt;br&gt;y frontend &lt;b&gt;React 18 + Vite&lt;/b&gt;.&lt;br&gt;Desplegada en &lt;b&gt;Kubernetes&lt;/b&gt; (Docker Desktop / local)." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=12;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="480" y="440" width="640" height="240" as="geometry" />
         </mxCell>
-        <!-- Sistemas Externos -->
-        <mxCell id="ext_email" value="&lt;b&gt;Sistema de Notificaciones&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema Externo - JavaMailSender + Gmail SMTP]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Envía alertas y notificaciones a equipos." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
-          <mxGeometry x="50" y="750" width="250" height="140" as="geometry" />
+        <!-- Sistemas de apoyo -->
+        <mxCell id="ext_auth" value="&lt;b&gt;Keycloak 24&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema de apoyo - Identity Provider]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Autenticación y autorización (OAuth2 / JWT). Emite y firma los tokens." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="480" width="240" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="ext_git" value="&lt;b&gt;Control de Versiones&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema Externo - Git/GitHub]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Repositorios de código con Git Flow." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
-          <mxGeometry x="370" y="750" width="250" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="ext_cicd" value="&lt;b&gt;Pipeline CI/CD + Calidad&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema Externo - SonarQube]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Pruebas automáticas y cobertura de código." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
-          <mxGeometry x="690" y="750" width="250" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="ext_auth" value="&lt;b&gt;Identity Provider&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema Externo - OAuth2/JWT]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Autenticación y autorización (Keycloak 24.x)." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
-          <mxGeometry x="1010" y="750" width="250" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="ext_prom" value="&lt;b&gt;Prometheus + Grafana&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema Externo - Monitoreo]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Recolecta métricas del cluster OKE (CPU, RAM, latencia, errores)." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
-          <mxGeometry x="1310" y="440" width="250" height="140" as="geometry" />
+        <mxCell id="ext_cicd" value="&lt;b&gt;GitHub + CI/CD&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Sistema de apoyo]&lt;/i&gt;&lt;br&gt;&lt;br&gt;Repositorio y pipeline (GitHub Actions). Build, tests, cobertura JaCoCo y análisis SonarQube." style="rounded=1;whiteSpace=wrap;html=1;container=0;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1">
+          <mxGeometry x="560" y="770" width="320" height="150" as="geometry" />
         </mxCell>
         <!-- Relaciones -->
-        <mxCell id="r1" value="Gestiona proyectos&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="p_pm" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r2" value="Registra avances&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="p_dev" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r3" value="Consulta KPIs&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="p_exec" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r4" value="Envía alertas&lt;br&gt;&lt;i&gt;[JavaMailSender]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="sys" target="ext_email"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r5" value="Integra repos&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="sys" target="ext_git"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r6" value="Ejecuta tests&lt;br&gt;&lt;i&gt;[Webhooks]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="sys" target="ext_cicd"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r7" value="Valida tokens&lt;br&gt;&lt;i&gt;[OAuth2/JWT]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="sys" target="ext_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="r8" value="Scrape métricas&lt;br&gt;&lt;i&gt;[HTTP /metrics]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="ext_prom" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r1" value="Supervisa proyectos&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="p_pm" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2" value="Gestiona sus tareas&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="p_dev" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3" value="Consulta KPIs&lt;br&gt;&lt;i&gt;[HTTPS]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="p_dir" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4" value="Autentica y valida tokens&lt;br&gt;&lt;i&gt;[OAuth2 / JWT]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="sys" target="ext_auth"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5" value="Construye y despliega&lt;br&gt;&lt;i&gt;[GitHub Actions]&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;dashed=1;" edge="1" parent="1" source="ext_cicd" target="sys"><mxGeometry relative="1" as="geometry" /></mxCell>
       </root>
     </mxGraphModel>
   </diagram>
