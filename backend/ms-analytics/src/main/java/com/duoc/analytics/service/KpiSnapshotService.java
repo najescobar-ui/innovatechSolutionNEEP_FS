@@ -1,5 +1,6 @@
 package com.duoc.analytics.service;
 
+import com.duoc.analytics.dto.HistoryResponse;
 import com.duoc.analytics.dto.KpiResponse;
 import com.duoc.analytics.entity.KpiSnapshot;
 import com.duoc.analytics.repository.KpiSnapshotRepository;
@@ -11,14 +12,20 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.ToDoubleFunction;
 
 @Service
 public class KpiSnapshotService {
 
     private static final Logger log = LoggerFactory.getLogger(KpiSnapshotService.class);
+
+    /** Ventana maxima permitida para consultas con rango (segun requerimiento UX). */
+    private static final long MAX_RANGE_DAYS = 30;
 
     private final KpiService kpis;
     private final KpiSnapshotRepository repo;
@@ -92,6 +99,61 @@ public class KpiSnapshotService {
 
     public List<KpiSnapshot> between(Instant from, Instant to) {
         return repo.findByCapturedAtBetweenOrderByCapturedAtAsc(from, to);
+    }
+
+    /**
+     * Serie historica de KPIs para el dashboard. Con un rango [from, to] (ambos
+     * requeridos) valida coherencia y tope de {@link #MAX_RANGE_DAYS} dias; en su
+     * defecto toma los ultimos `points` snapshots. Incluye los deltas contra ~30
+     * dias atras. Lanza IllegalArgumentException si el rango es invalido (el
+     * GlobalExceptionHandler la traduce a HTTP 400).
+     */
+    public HistoryResponse history(int points, LocalDate from, LocalDate to) {
+        List<KpiSnapshot> serie;
+        if (from != null && to != null) {
+            if (to.isBefore(from)) {
+                throw new IllegalArgumentException("Rango invalido: 'to' es anterior a 'from'");
+            }
+            if (ChronoUnit.DAYS.between(from, to) > MAX_RANGE_DAYS) {
+                throw new IllegalArgumentException("El rango supera el maximo de " + MAX_RANGE_DAYS + " dias");
+            }
+            /* to inclusivo: hasta el final del dia */
+            var inicio = from.atStartOfDay(ZoneOffset.UTC).toInstant();
+            var fin = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+            serie = between(inicio, fin);
+        } else {
+            serie = latest(points);
+        }
+
+        if (serie.isEmpty()) return HistoryResponse.empty();
+
+        var ult = serie.get(serie.size() - 1);
+        var hace30 = latestBefore(Instant.now().minus(30, ChronoUnit.DAYS));
+
+        return new HistoryResponse(
+                "ok",
+                puntos(serie, KpiSnapshot::getUtilizationPercentage),
+                puntos(serie, s -> (double) s.getActiveProjects()),
+                new HistoryResponse.Deltas(
+                        delta(ult.getUtilizationPercentage(), hace30 != null ? hace30.getUtilizationPercentage() : null),
+                        deltaInt(ult.getActiveProjects(), hace30 != null ? hace30.getActiveProjects() : null),
+                        deltaInt(ult.getTotalActiveResources(), hace30 != null ? hace30.getTotalActiveResources() : null)
+                )
+        );
+    }
+
+    private List<HistoryResponse.Punto> puntos(List<KpiSnapshot> serie, ToDoubleFunction<KpiSnapshot> f) {
+        return serie.stream()
+                .map(s -> new HistoryResponse.Punto(s.getCapturedAt(), f.applyAsDouble(s)))
+                .toList();
+    }
+
+    private Double delta(double actual, Double previo) {
+        return previo == null ? null : Math.round((actual - previo) * 10000.0) / 10000.0;
+    }
+
+    private Integer deltaInt(int actual, Integer previo) {
+        return previo == null ? null : actual - previo;
     }
 
     private KpiSnapshot snapshotFrom(KpiResponse kpi, Instant at, double factor) {
