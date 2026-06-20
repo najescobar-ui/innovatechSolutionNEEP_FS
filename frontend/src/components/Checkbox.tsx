@@ -7,7 +7,7 @@ type Props = {
   ariaLabel?: string;
 };
 
-// Checkbox dark-friendly con soporte indeterminate (necesita ref).
+/** Checkbox dark-friendly con soporte indeterminate (necesita ref). */
 export function Checkbox({ checked, indeterminate = false, onChange, ariaLabel }: Props) {
   const ref = useRef<HTMLInputElement>(null);
 

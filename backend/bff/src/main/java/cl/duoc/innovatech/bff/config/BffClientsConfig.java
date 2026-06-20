@@ -15,8 +15,10 @@ import java.time.Duration;
 @Configuration
 public class BffClientsConfig {
 
-    // Ojo: el eureka-client resuelve el RestClient.Builder por tipo. Si dejamos
-    // solo el @LoadBalanced, se rompe el registro de heartbeats.
+    /**
+     * Ojo: el eureka-client resuelve el RestClient.Builder por tipo. Si dejamos
+     * solo el @LoadBalanced, se rompe el registro de heartbeats.
+     */
     @Bean
     @Primary
     public RestClient.Builder restClientBuilder() {
@@ -29,8 +31,10 @@ public class BffClientsConfig {
         return RestClient.builder();
     }
 
-    // Tres breakers con la misma config base (window 10, 50%, 3s timeout,
-    // 30s open). Uno por cada microservicio que llama el BFF.
+    /**
+     * Tres breakers con la misma config base (window 10, 50%, 3s timeout,
+     * 30s open). Uno por cada microservicio que llama el BFF.
+     */
     @Bean
     public Customizer<Resilience4JCircuitBreakerFactory> breakersConfig() {
         var cb = CircuitBreakerConfig.custom()

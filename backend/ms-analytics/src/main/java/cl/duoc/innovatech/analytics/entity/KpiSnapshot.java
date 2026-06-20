@@ -9,8 +9,10 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 
-// Snapshot puntual de los KPIs agregados. Sirve para series temporales (sparkline,
-// deltas vs periodo anterior) sin tener que recalcular history desde cero.
+/**
+ * Snapshot puntual de los KPIs agregados. Sirve para series temporales (sparkline,
+ * deltas vs periodo anterior) sin tener que recalcular history desde cero.
+ */
 @Entity
 @Table(name = "kpi_snapshots")
 public class KpiSnapshot {

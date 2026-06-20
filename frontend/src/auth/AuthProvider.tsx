@@ -12,7 +12,7 @@ export type AuthCtx = {
   logout: () => void;
 };
 
-// Default mientras Keycloak inicializa
+/** Default mientras Keycloak inicializa */
 const initial: AuthCtx = {
   ready: false,
   authenticated: false,
@@ -29,7 +29,7 @@ const ROLES_VALIDOS = ["PM", "DEV", "DIR"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthCtx>(initial);
-  // En StrictMode el effect corre 2 veces, este flag evita un doble init.
+  /* En StrictMode el effect corre 2 veces, este flag evita un doble init. */
   const initStarted = useRef(false);
 
   useEffect(() => {
@@ -57,12 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       })
       .catch((err) => {
-        // Si falla el init, dejamos la pantalla "cargando" mostrando algo util.
+        /* Si falla el init, dejamos la pantalla "cargando" mostrando algo util. */
         console.error("Keycloak init fallo:", err);
         setState((s) => ({ ...s, ready: true }));
       });
 
-    // Refresh automatico del token un poco antes de que expire.
+    /* Refresh automatico del token un poco antes de que expire. */
     keycloak.onTokenExpired = () => {
       keycloak.updateToken(30).then((refreshed) => {
         if (refreshed) {

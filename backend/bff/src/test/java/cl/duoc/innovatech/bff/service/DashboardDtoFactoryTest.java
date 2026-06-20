@@ -82,12 +82,12 @@ class DashboardDtoFactoryTest {
 
         var pm = (DashboardDto.PMDashboard) factory.create(UserRole.PM);
 
-        // 5 total - 1 completado - 1 cancelado = 3 supervisados
+        /* 5 total - 1 completado - 1 cancelado = 3 supervisados */
         assertThat(pm.supervisedProjects()).isEqualTo(3);
         assertThat(pm.tasksAtRisk()).isEqualTo(1);
-        // hitos: top 3 con fechaFin futura, ordenados ascendente
+        /* hitos: top 3 con fechaFin futura, ordenados ascendente */
         assertThat(pm.upcomingMilestones()).hasSizeLessThanOrEqualTo(3);
-        // el primer hito debe ser el de fecha mas cercana (Activo prox., +7 dias)
+        /* el primer hito debe ser el de fecha mas cercana (Activo prox., +7 dias) */
         assertThat(pm.upcomingMilestones().get(0)).contains("Activo prox.");
     }
 

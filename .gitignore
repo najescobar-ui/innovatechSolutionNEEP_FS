@@ -36,6 +36,7 @@ target/
 node_modules/
 .vite/
 dist/
+*.tsbuildinfo
 
 # IDEs
 .vscode/

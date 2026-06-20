@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 
-// "Analytics" oculta hasta que se libere su vista (proxima iteracion).
+/** "Analytics" oculta hasta que se libere su vista (proxima iteracion). */
 const items = [
   { to: "/",          label: "Dashboard", Icon: LayoutDashboard },
   { to: "/projects",  label: "Projects",  Icon: FolderKanban },

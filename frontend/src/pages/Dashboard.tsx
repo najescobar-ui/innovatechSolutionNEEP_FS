@@ -63,7 +63,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const MAX_RANGE_DAYS = 30;
 
-// Helpers de fecha: trabajamos con YYYY-MM-DD locales para los inputs nativos.
+/** Helpers de fecha: trabajamos con YYYY-MM-DD locales para los inputs nativos. */
 function isoDate(d: Date) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -89,7 +89,7 @@ export function Dashboard() {
   const [history, setHistory] = useState<History | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  // Rango de fechas para el grafico de evolucion (default: ultimos 30 dias).
+  /* Rango de fechas para el grafico de evolucion (default: ultimos 30 dias). */
   const [from, setFrom] = useState<string>(daysAgoISO(30));
   const [to, setTo] = useState<string>(todayISO());
   const [errRange, setErrRange] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export function Dashboard() {
     }
   }, [roles.join(",")]);
 
-  // Refetch historico cuando cambia el rango (con validacion).
+  /* Refetch historico cuando cambia el rango (con validacion). */
   useEffect(() => {
     if (!roles.includes("DIR")) return;
     const days = daysBetween(from, to);

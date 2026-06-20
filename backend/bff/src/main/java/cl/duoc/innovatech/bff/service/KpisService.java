@@ -43,8 +43,10 @@ public class KpisService {
                 });
     }
 
-    // Devuelve la utilizacion real (0..1) calculada en ms-analytics.
-    // Cero si el backend no respondio o si el campo no esta presente.
+    /**
+     * Devuelve la utilizacion real (0..1) calculada en ms-analytics.
+     * Cero si el backend no respondio o si el campo no esta presente.
+     */
     public double utilizationPercentage() {
         var kpi = get();
         var raw = kpi.get("utilizationPercentage");
