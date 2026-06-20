@@ -10,6 +10,15 @@ spring:
         jwt:
           jwk-set-uri: ${KEYCLOAK_JWK_URI:http://keycloak:8080/realms/innovatech/protocol/openid-connect/certs}
 
+keycloak:
+  admin:
+    base-url: ${KEYCLOAK_ADMIN_URL:http://keycloak:8080}
+    realm: ${KEYCLOAK_REALM:innovatech}
+    admin-realm: ${KEYCLOAK_ADMIN_REALM:master}
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+    username: ${KEYCLOAK_ADMIN:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+
 eureka:
   client:
     service-url:

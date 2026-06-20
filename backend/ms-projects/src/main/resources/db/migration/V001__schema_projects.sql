@@ -1,5 +1,5 @@
 -- Initial schema for ms-projects.
--- Mirrors cl.duoc.innovatech.projects.entity.Project.
+-- Mirrors com.duoc.projects.entity.Project.
 
 CREATE TABLE projects (
     id                  BIGSERIAL    PRIMARY KEY,

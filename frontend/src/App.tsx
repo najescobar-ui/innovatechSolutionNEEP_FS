@@ -7,6 +7,8 @@ import { Projects } from "./pages/Projects";
 import { Resources } from "./pages/Resources";
 import { Tasks } from "./pages/Tasks";
 import { Analytics } from "./pages/Analytics";
+import { Login } from "./pages/Login";
+import { Register } from "./pages/Register";
 
 function Loading() {
   return (
@@ -19,20 +21,26 @@ function Loading() {
 function AppRoutes() {
   const { ready, authenticated } = useAuth();
   if (!ready) return <Loading />;
-  if (!authenticated) return <Loading />; /* login-required ya redirigio, no deberia caer aca */
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/analytics" element={<Analytics />} />
-          {/* cualquier ruta vieja o futura cae al dashboard mientras tanto */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
+        {!authenticated ? (
+          <>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        ) : (
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        )}
       </Routes>
     </BrowserRouter>
   );
