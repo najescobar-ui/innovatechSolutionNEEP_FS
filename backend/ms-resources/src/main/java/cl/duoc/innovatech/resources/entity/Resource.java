@@ -38,7 +38,7 @@ public class Resource {
     @Column(name = "weekly_hours", nullable = false)
     private Integer weeklyHours;
 
-    // CSV. Si despues hay que filtrar por skill, lo movemos a tabla aparte.
+    /** CSV. Si despues hay que filtrar por skill, lo movemos a tabla aparte. */
     @Column(length = 500)
     private String skills;
 

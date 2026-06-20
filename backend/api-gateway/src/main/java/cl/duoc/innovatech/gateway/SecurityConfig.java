@@ -7,10 +7,12 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-// Gateway reactive con JWT obligatorio en /api/**.
-// /actuator/** queda abierto para health/metrics; preflight OPTIONS
-// tambien (lo maneja Spring Security via .cors() usando el bean
-// CorsConfigurationSource).
+/**
+ * Gateway reactive con JWT obligatorio en /api/**.
+ * /actuator/** queda abierto para health/metrics; preflight OPTIONS
+ * tambien (lo maneja Spring Security via .cors() usando el bean
+ * CorsConfigurationSource).
+ */
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {

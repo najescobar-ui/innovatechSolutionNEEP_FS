@@ -12,7 +12,7 @@ public record HistoryResponse(
 
     public record Punto(Instant t, double v) {}
 
-    // Comparativa contra un periodo anterior (por defecto: ~30 dias atras).
+    /** Comparativa contra un periodo anterior (por defecto: ~30 dias atras). */
     public record Deltas(
             Double utilizationPercentage,
             Integer activeProjects,

@@ -12,8 +12,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Set;
 
-// El role sale de las authorities (las pobla JwtAuthoritiesConverter).
-// Tomamos la primera que matchee con los roles validos de plataforma.
+/**
+ * El role sale de las authorities (las pobla JwtAuthoritiesConverter).
+ * Tomamos la primera que matchee con los roles validos de plataforma.
+ */
 @RestController
 public class DashboardController {
 

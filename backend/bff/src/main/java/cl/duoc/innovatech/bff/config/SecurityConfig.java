@@ -7,8 +7,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-// El gateway ya valida el token, pero el BFF tambien lo necesita para
-// leer las authorities (rol del usuario). Mismo JWK que el gateway.
+/**
+ * El gateway ya valida el token, pero el BFF tambien lo necesita para
+ * leer las authorities (rol del usuario). Mismo JWK que el gateway.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {

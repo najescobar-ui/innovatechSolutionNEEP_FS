@@ -36,9 +36,11 @@ public class KpiSnapshotService {
         this.backfillWeeks = backfillWeeks;
     }
 
-    // Si la tabla esta vacia, genera N puntos sinteticos con jitter sobre el valor actual
-    // para que el sparkline tenga algo que mostrar desde el dia 1. A medida que el scheduler
-    // corre, estos snapshots iniciales quedan sepultados por datos reales.
+    /**
+     * Si la tabla esta vacia, genera N puntos sinteticos con jitter sobre el valor actual
+     * para que el sparkline tenga algo que mostrar desde el dia 1. A medida que el scheduler
+     * corre, estos snapshots iniciales quedan sepultados por datos reales.
+     */
     @PostConstruct
     public void backfillIfEmpty() {
         if (!enabled) return;
@@ -53,7 +55,7 @@ public class KpiSnapshotService {
         var points = new ArrayList<KpiSnapshot>();
         for (int i = backfillWeeks - 1; i >= 0; i--) {
             var t = now.minus(i * 7L, ChronoUnit.DAYS);
-            // jitter alrededor de los valores actuales (+/- 15%)
+            /* jitter alrededor de los valores actuales (+/- 15%) */
             double jitter = 1.0 + (Math.random() - 0.5) * 0.30;
             points.add(snapshotFrom(current, t, jitter));
         }
@@ -74,7 +76,7 @@ public class KpiSnapshotService {
     }
 
     public List<KpiSnapshot> latest(int points) {
-        // Devuelve los ultimos `points` snapshots en orden cronologico ascendente.
+        /* Devuelve los ultimos `points` snapshots en orden cronologico ascendente. */
         var all = repo.findAll(
                 org.springframework.data.domain.PageRequest.of(0, Math.max(1, points),
                         org.springframework.data.domain.Sort.by(

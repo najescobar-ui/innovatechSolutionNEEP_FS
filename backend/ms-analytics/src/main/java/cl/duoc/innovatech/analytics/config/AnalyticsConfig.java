@@ -15,8 +15,10 @@ import java.time.Duration;
 @Configuration
 public class AnalyticsConfig {
 
-    // Misma trampa que en bff: el eureka client toma el RestClient.Builder
-    // por tipo, asi que dejamos un Primary sin @LoadBalanced.
+    /**
+     * Misma trampa que en bff: el eureka client toma el RestClient.Builder
+     * por tipo, asi que dejamos un Primary sin @LoadBalanced.
+     */
     @Bean
     @Primary
     public RestClient.Builder restClientBuilder() {
@@ -29,8 +31,10 @@ public class AnalyticsConfig {
         return RestClient.builder();
     }
 
-    // Un solo Customizer configura ambos breakers (projects y resources)
-    // con los mismos parametros, los dejo iguales por simplicidad.
+    /**
+     * Un solo Customizer configura ambos breakers (projects y resources)
+     * con los mismos parametros, los dejo iguales por simplicidad.
+     */
     @Bean
     public Customizer<Resilience4JCircuitBreakerFactory> breakersConfig() {
         var cb = CircuitBreakerConfig.custom()

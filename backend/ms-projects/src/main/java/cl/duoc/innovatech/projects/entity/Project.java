@@ -43,7 +43,7 @@ public class Project {
     @Column(name = "planned_end_date")
     private LocalDate plannedEndDate;
 
-    // TODO: cuando entre Keycloak, llenar con el sub del JWT
+    /** TODO: cuando entre Keycloak, llenar con el sub del JWT */
     @Column(name = "owner_id", length = 64)
     private String ownerId;
 }

@@ -17,7 +17,7 @@ export function Modal({ open, onClose, title, children, footer }: Props) {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onEsc);
-    // bloquear scroll del body mientras esta abierto
+    /* bloquear scroll del body mientras esta abierto */
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -59,7 +59,7 @@ export function Modal({ open, onClose, title, children, footer }: Props) {
   );
 }
 
-// Helpers de form para mantener un estilo consistente.
+/** Helpers de form para mantener un estilo consistente. */
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block mb-3 last:mb-0">
@@ -84,7 +84,7 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   return <textarea {...props} className={`${baseInput} resize-none ${props.className ?? ""}`} />;
 }
 
-// Confirmacion para acciones destructivas. tono=danger marca el boton primario en rojo.
+/** Confirmacion para acciones destructivas. tono=danger marca el boton primario en rojo. */
 type ConfirmProps = {
   open: boolean;
   onClose: () => void;
