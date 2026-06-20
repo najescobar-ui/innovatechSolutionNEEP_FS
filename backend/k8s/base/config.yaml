@@ -1,0 +1,37 @@
+# Configuracion no sensible compartida (hostnames y nombres de BD = service names del cluster).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: innovatech-config
+data:
+  EUREKA_DEFAULT_ZONE: "http://eureka-server:8761/eureka/"
+  KEYCLOAK_REALM: "innovatech"
+  KEYCLOAK_JWK_URI: "http://keycloak:8080/realms/innovatech/protocol/openid-connect/certs"
+  KEYCLOAK_ADMIN_URL: "http://keycloak:8080"
+  DB_PROJECTS_HOST: "db-projects"
+  DB_PROJECTS_NAME: "projects"
+  DB_PROJECTS_USER: "projects_user"
+  DB_RESOURCES_HOST: "db-resources"
+  DB_RESOURCES_NAME: "resources"
+  DB_RESOURCES_USER: "resources_user"
+  DB_ANALYTICS_HOST: "db-analytics"
+  DB_ANALYTICS_NAME: "analytics"
+  DB_ANALYTICS_USER: "analytics_user"
+  KC_DB_USERNAME: "keycloak"
+  SNAPSHOTS_ENABLED: "true"
+  SNAPSHOTS_CRON: "0 */5 * * * *"
+  SNAPSHOTS_BACKFILL_WEEKS: "12"
+---
+# Credenciales de desarrollo (en prod irian en un Secret real / gestor de secretos).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: innovatech-secrets
+type: Opaque
+stringData:
+  DB_PROJECTS_PASSWORD: "projects_dev"
+  DB_RESOURCES_PASSWORD: "resources_dev"
+  DB_ANALYTICS_PASSWORD: "analytics_dev"
+  KC_DB_PASSWORD: "keycloak_dev"
+  KEYCLOAK_ADMIN: "admin"
+  KEYCLOAK_ADMIN_PASSWORD: "admin"

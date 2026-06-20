@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Overlay para el cluster local (Docker Desktop Kubernetes).
+# El base ya usa imagePullPolicy IfNotPresent (imagenes locales) y Services
+# LoadBalancer que Docker Desktop publica en localhost.
+resources:
+  - ../../base
+
+# Kubernetes auto-inyecta env vars por cada Service (estilo Docker links), p.ej.
+# DB_PROJECTS_PORT=tcp://<ip>:5432, que colisiona con las vars que usan las apps
+# para el puerto de BD y rompe el jdbcUrl. Lo desactivamos en todos los Deployments;
+# la comunicacion se hace por DNS del cluster + las env vars explicitas.
+patches:
+  - target:
+      kind: Deployment
+    patch: |
+      - op: add
+        path: /spec/template/spec/enableServiceLinks
+        value: false
