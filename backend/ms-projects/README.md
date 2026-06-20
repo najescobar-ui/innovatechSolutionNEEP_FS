@@ -1,130 +1,43 @@
-# ms-proyectos
+# ms-projects
 
-Microservicio responsable del ciclo de vida de los proyectos: creación, consulta, actualización parcial y eliminación. Persiste en su propia base de datos PostgreSQL (Database per Service).
+Microservicio del ciclo de vida de **proyectos** y **tareas**: creación, consulta,
+asignación de tareas a recursos, estados y eliminación. Persiste en su propia BD
+PostgreSQL (Database per Service).
 
-## Stack
-
-- Java **25** LTS
-- Spring Boot **4.0.x** (web + data-jpa + actuator)
-- Hibernate 7 + Spring Data JPA
-- Flyway (migraciones versionadas)
-- PostgreSQL 16 (BD `db-proyectos`, puerto interno 5432)
-- Eureka client
-- Micrometer Prometheus
-- Lombok (uso moderado)
+## Tabla técnica
+| Aspecto | Detalle |
+|---------|---------|
+| Lenguaje | Java 25 |
+| Framework | Spring Boot 4, Spring Cloud 2025.1.0 |
+| Librerías | Spring Web, Spring Data JPA (Hibernate 7), Flyway, PostgreSQL, Eureka Client, Actuator, Micrometer/Prometheus, springdoc-openapi (Swagger), Lombok |
+| Patrones de diseño | Arquitectura en capas (web/service/repository/entity), Repository, DTO, Global Exception Handler |
 
 ## Endpoints
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/projects` | Lista proyectos |
+| GET | `/projects/{id}` | Proyecto por id (404 si no existe) |
+| POST | `/projects` | Crea proyecto (201 + `Location`) |
+| PATCH | `/projects/{id}` | Actualiza estado/owner |
+| DELETE | `/projects/{id}` | Elimina (204/404) |
+| GET | `/tasks` | Lista tareas; filtros `?projectId=&assigneeResourceId=&status=` |
+| GET | `/tasks/{id}` | Tarea por id |
+| POST | `/tasks` | Crea tarea |
+| PATCH | `/tasks/{id}` | Actualiza tarea (estado, asignado, horas, fecha) |
+| DELETE | `/tasks/{id}` | Elimina tarea |
 
-| Método | Ruta | Body | Respuesta |
-|--------|------|------|-----------|
-| GET | `/proyectos` | — | `List<ProyectoDto>` |
-| GET | `/proyectos/{id}` | — | `ProyectoDto` o 404 |
-| POST | `/proyectos` | `CrearProyectoRequest` | 201 + `ProyectoDto` + header `Location` |
-| PATCH | `/proyectos/{id}` | `ActualizarProyectoRequest` (estado y/o responsableId) | `ProyectoDto` o 404 |
-| DELETE | `/proyectos/{id}` | — | 204 o 404 |
-
-### DTOs
-
-```java
-record CrearProyectoRequest(
-    String nombre,
-    String descripcion,
-    EstadoProyecto estado,
-    LocalDate fechaInicio,
-    LocalDate fechaFinPlanificada,
-    String responsableId
-) {}
-
-record ActualizarProyectoRequest(
-    EstadoProyecto estado,
-    String responsableId
-) {}
-```
-
-`EstadoProyecto`: `PLANIFICACION` | `EN_CURSO` | `COMPLETADO` | `CANCELADO`.
-
-## Estructura
-
-```
-servicios/ms-proyectos/
-├── src/main/java/cl/duoc/innovatech/proyectos/
-│   ├── MsProyectosApplication.java
-│   ├── config/
-│   ├── entity/                   # Proyecto, EstadoProyecto (enum)
-│   ├── repository/               # ProyectoRepository (Spring Data JPA)
-│   ├── service/                  # ProyectoService (@Transactional)
-│   ├── dto/                      # ProyectoDto, CrearProyectoRequest, ActualizarProyectoRequest
-│   └── web/                      # ProyectoController
-├── src/main/resources/
-│   ├── application.yml
-│   └── db/migration/             # V001__schema_proyectos.sql, V002__seed_proyectos.sql
-├── Dockerfile
-└── pom.xml
-```
+`TaskStatus`: `TODO`, `IN_PROGRESS`, `DONE`, `BLOCKED`.
 
 ## Variables de entorno
+| Variable | Default |
+|----------|---------|
+| `DB_PROJECTS_HOST` / `DB_PROJECTS_USER` / `DB_PROJECTS_PASSWORD` | `db-projects` / `projects_user` / `projects_dev` |
+| `EUREKA_DEFAULT_ZONE` | `http://eureka-server:8761/eureka/` |
 
-| Variable | Default | Descripción |
-|----------|---------|-------------|
-| `EUREKA_DEFAULT_ZONE` | `http://eureka-server:8761/eureka/` | URL del Eureka Server |
-| `DB_PROYECTOS_HOST` | `db-proyectos` | Hostname Docker de la BD |
-| `DB_PROYECTOS_NAME` | `proyectos` | Nombre de la BD |
-| `DB_PROYECTOS_USER` | `proyectos_user` | Usuario PostgreSQL |
-| `DB_PROYECTOS_PASSWORD` | `proyectos_dev` | Password PostgreSQL |
-
-## Ejecución y prueba
-
-### Como parte del stack
-
+## Ejecución
 ```bash
-docker compose up -d db-proyectos eureka-server ms-proyectos
+docker compose up -d --build ms-projects
+curl http://localhost:8081/projects
+open http://localhost:8081/swagger-ui.html   # documentación OpenAPI
 ```
-
-Imagen: `innovatech/ms-proyectos:dev`, puerto interno 8081.
-
-### Probar (a través del Gateway, requiere JWT)
-
-```bash
-TOKEN="<jwt obtenido de Keycloak>"
-
-# Listar
-curl http://localhost:9000/api/proyectos -H "Authorization: Bearer $TOKEN"
-
-# Crear
-curl -X POST http://localhost:9000/api/proyectos \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"nombre":"Demo","descripcion":"Test","estado":"PLANIFICACION","fechaInicio":"2026-06-01","fechaFinPlanificada":"2026-07-01","responsableId":"user1"}'
-
-# Patch (solo estado o solo responsable, ambos opcionales)
-curl -X PATCH http://localhost:9000/api/proyectos/1 \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"estado":"EN_CURSO"}'
-
-# Borrar
-curl -X DELETE http://localhost:9000/api/proyectos/1 -H "Authorization: Bearer $TOKEN"
-```
-
-### Probar directo al microservicio (sin gateway, solo en red Docker)
-
-```bash
-docker exec -it ms-proyectos curl http://ms-proyectos:8081/proyectos
-```
-
-### Verificar persistencia
-
-```bash
-docker exec -it db-proyectos psql -U proyectos_user -d proyectos -c "SELECT id, nombre, estado FROM proyectos;"
-```
-
-### Verificar migraciones Flyway
-
-```bash
-curl http://localhost:8081/actuator/flyway   # estado de cada migracion
-```
-
-## Patrones aplicados
-
-- **Repository Pattern** (Spring Data JPA).
-- **Database per Service**: solo este microservicio accede a `db-proyectos`. Otros consumen vía REST.
-- **Migraciones declarativas** con Flyway, versionadas en `db/migration/`.
-- **Validación transaccional** con `@Transactional` a nivel de clase, métodos de lectura con `readOnly = true`.
+Puerto: `8081`. BD vía Flyway (`V001..V005`).
