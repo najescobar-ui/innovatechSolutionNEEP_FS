@@ -1,0 +1,964 @@
+{
+  "info": {
+    "name": "Innovatech Solutions — API REST",
+    "description": "Colección de la API de Innovatech Solutions (DSY1106). El BFF se accede por el API Gateway (/api). El login se hace contra Keycloak para obtener el JWT, que se inyecta automáticamente en las demás peticiones.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:9000/api"
+    },
+    {
+      "key": "keycloak",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Registro de cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Crea un usuario en Keycloak. Endpoint público.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Díaz\",\n  \"email\": \"ana@innovatech.cl\",\n  \"rut\": \"12.345.678-5\",\n  \"password\": \"Secret.1\",\n  \"role\": \"DEV\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"created\",\n  \"email\": \"ana@innovatech.cl\",\n  \"role\": \"DEV\"\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "Crea un usuario en Keycloak. Endpoint público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Díaz\",\n  \"email\": \"ana@innovatech.cl\",\n  \"rut\": \"12.345.678-5\",\n  \"password\": \"Secret.1\",\n  \"role\": \"DEV\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "400 Perfil inválido",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"role: Perfil inválido; use DEV, PM o DIR\",\n  \"path\": \"/auth/register\"\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                },
+                "description": "Crea un usuario en Keycloak. Endpoint público.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Díaz\",\n  \"email\": \"ana@innovatech.cl\",\n  \"rut\": \"12.345.678-5\",\n  \"password\": \"Secret.1\",\n  \"role\": \"DEV\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (obtener token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{keycloak}}/realms/innovatech/protocol/openid-connect/token",
+              "host": [
+                "{{keycloak}}"
+              ],
+              "path": [
+                "realms",
+                "innovatech",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            },
+            "description": "Obtiene el JWT desde Keycloak (password grant). Guarda el access_token en la variable {{token}}.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                },
+                {
+                  "key": "client_id",
+                  "value": "innovatech-frontend"
+                },
+                {
+                  "key": "username",
+                  "value": "ana@innovatech.cl"
+                },
+                {
+                  "key": "password",
+                  "value": "Secret.1"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"access_token\": \"eyJhbGciOiJSUzI1NiIs...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 300,\n  \"refresh_token\": \"eyJ...\",\n  \"scope\": \"profile email\"\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/x-www-form-urlencoded"
+                  }
+                ],
+                "url": {
+                  "raw": "{{keycloak}}/realms/innovatech/protocol/openid-connect/token",
+                  "host": [
+                    "{{keycloak}}"
+                  ],
+                  "path": [
+                    "realms",
+                    "innovatech",
+                    "protocol",
+                    "openid-connect",
+                    "token"
+                  ]
+                },
+                "description": "Obtiene el JWT desde Keycloak (password grant). Guarda el access_token en la variable {{token}}.",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "grant_type",
+                      "value": "password"
+                    },
+                    {
+                      "key": "client_id",
+                      "value": "innovatech-frontend"
+                    },
+                    {
+                      "key": "username",
+                      "value": "ana@innovatech.cl"
+                    },
+                    {
+                      "key": "password",
+                      "value": "Secret.1"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d.access_token) { pm.collectionVariables.set('token', d.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Dashboard por rol",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "Devuelve la vista según el rol del JWT (PM/DEV/DIR)."
+          },
+          "response": [
+            {
+              "name": "200 (DIR)",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"role\": \"DIR\",\n  \"activeProjects\": 2,\n  \"utilizationPercentage\": 0.72,\n  \"globalAlerts\": 1\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/dashboard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "dashboard"
+                  ]
+                },
+                "description": "Devuelve la vista según el rol del JWT (PM/DEV/DIR)."
+              }
+            },
+            {
+              "name": "403 sin rol",
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 403,\n  \"message\": \"usuario sin rol de plataforma (PM/DEV/DIR)\",\n  \"path\": \"/dashboard\"\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/dashboard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "dashboard"
+                  ]
+                },
+                "description": "Devuelve la vista según el rol del JWT (PM/DEV/DIR)."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Proyectos",
+      "item": [
+        {
+          "name": "Listar proyectos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"items\": [\n    {\n      \"id\": 1,\n      \"name\": \"Plataforma Innovatech\",\n      \"status\": \"IN_PROGRESS\",\n      \"ownerId\": \"user-pm-test\"\n    }\n  ]\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/projects",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "projects"
+                  ]
+                },
+                "description": ""
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear proyecto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Migración Acme\",\n  \"description\": \"Migrar la plataforma legacy\",\n  \"status\": \"PLANNING\",\n  \"plannedEndDate\": \"2026-09-30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 3,\n  \"name\": \"Migración Acme\",\n  \"status\": \"PLANNING\",\n  \"plannedEndDate\": \"2026-09-30\"\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/projects",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "projects"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Migración Acme\",\n  \"description\": \"Migrar la plataforma legacy\",\n  \"status\": \"PLANNING\",\n  \"plannedEndDate\": \"2026-09-30\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar proyecto",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "3"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Eliminar proyecto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/projects/3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "3"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recursos",
+      "item": [
+        {
+          "name": "Listar recursos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/resources",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "resources"
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"items\": [\n    {\n      \"id\": 11,\n      \"name\": \"Dev Demo\",\n      \"email\": \"dev@innovatech.cl\",\n      \"role\": \"DEV\",\n      \"weeklyHours\": 40,\n      \"active\": true\n    }\n  ]\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/resources",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "resources"
+                  ]
+                },
+                "description": ""
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear recurso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/resources",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "resources"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pedro QA\",\n  \"email\": \"pedro@innovatech.cl\",\n  \"role\": \"QA\",\n  \"weeklyHours\": 40,\n  \"skills\": \"Selenium, JUnit\",\n  \"active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 13,\n  \"name\": \"Pedro QA\",\n  \"email\": \"pedro@innovatech.cl\",\n  \"role\": \"QA\",\n  \"weeklyHours\": 40,\n  \"active\": true\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/resources",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "resources"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Pedro QA\",\n  \"email\": \"pedro@innovatech.cl\",\n  \"role\": \"QA\",\n  \"weeklyHours\": 40,\n  \"skills\": \"Selenium, JUnit\",\n  \"active\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tareas",
+      "item": [
+        {
+          "name": "Listar tareas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks?projectId=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks?projectId=1"
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"items\": [\n    {\n      \"id\": 1,\n      \"projectId\": 1,\n      \"title\": \"Configurar CI/CD\",\n      \"status\": \"DONE\",\n      \"assigneeResourceId\": 11,\n      \"estimatedHours\": 8\n    }\n  ]\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/tasks?projectId=1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks?projectId=1"
+                  ]
+                },
+                "description": ""
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear tarea",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": 1,\n  \"title\": \"Diseñar API\",\n  \"status\": \"TODO\",\n  \"assigneeResourceId\": 11,\n  \"estimatedHours\": 12,\n  \"dueDate\": \"2026-07-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 17,\n  \"projectId\": 1,\n  \"title\": \"Diseñar API\",\n  \"status\": \"TODO\",\n  \"assigneeResourceId\": 11\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/tasks",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": 1,\n  \"title\": \"Diseñar API\",\n  \"status\": \"TODO\",\n  \"assigneeResourceId\": 11,\n  \"estimatedHours\": 12,\n  \"dueDate\": \"2026-07-15\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "KPIs / Analítica",
+      "item": [
+        {
+          "name": "KPIs actuales",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kpis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kpis"
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"activeProjects\": 2,\n  \"delayedProjects\": 0,\n  \"totalActiveResources\": 12,\n  \"utilizationPercentage\": 0.72\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/kpis",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "kpis"
+                  ]
+                },
+                "description": ""
+              }
+            }
+          ]
+        },
+        {
+          "name": "Histórico de KPIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kpis/history?points=12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kpis",
+                "history?points=12"
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"utilization\": [\n    {\n      \"t\": \"2026-06-01T00:00:00Z\",\n      \"v\": 0.68\n    }\n  ],\n  \"deltas\": {\n    \"utilizationPercentage\": 0.04\n  }\n}",
+              "_postman_previewlanguage": "json",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/kpis/history?points=12",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "kpis",
+                    "history?points=12"
+                  ]
+                },
+                "description": ""
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
