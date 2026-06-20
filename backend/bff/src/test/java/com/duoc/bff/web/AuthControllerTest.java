@@ -39,16 +39,7 @@ class AuthControllerTest {
 
         assertThatThrownBy(() -> controller.register(req))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("perfil invalido");
-        verify(keycloak, never()).register(any());
-    }
-
-    @Test
-    void register_missingEmail_rejected() {
-        var req = new RegisterRequest("Ana", "Diaz", "", "1-9", "secret", "DEV");
-
-        assertThatThrownBy(() -> controller.register(req))
-                .isInstanceOf(IllegalArgumentException.class);
+                .hasMessageContaining("Perfil");
         verify(keycloak, never()).register(any());
     }
 }

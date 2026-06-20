@@ -12,6 +12,19 @@ const ROLES = [
   { v: "DIR", l: "Directivo (DIR)" },
 ];
 
+// Minimo 8, con mayuscula, minuscula y al menos un caracter especial.
+const PWD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Formatea el RUT a medida que se escribe: 16.820.250-4 */
+function formatRut(raw: string): string {
+  const clean = raw.replace(/[^0-9kK]/g, "").toUpperCase().slice(0, 9);
+  if (clean.length <= 1) return clean;
+  const body = clean.slice(0, -1);
+  const dv = clean.slice(-1);
+  return body.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "-" + dv;
+}
+
 export function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -26,8 +39,17 @@ export function Register() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Validacion en el front (UX inmediata); el backend revalida con Jakarta.
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !rut.trim() || !password) {
       setErr("Completa todos los campos.");
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setErr("El email no es válido (ej: nombre@empresa.cl).");
+      return;
+    }
+    if (!PWD_RE.test(password)) {
+      setErr("La contraseña debe tener mínimo 8 caracteres, con mayúscula, minúscula y un carácter especial.");
       return;
     }
     setSending(true);
@@ -44,9 +66,8 @@ export function Register() {
       await login(email.trim(), password);
       navigate("/", { replace: true });
     } catch (e: any) {
-      const status = e?.response?.status;
-      if (status === 409) setErr("El email ya está registrado.");
-      else setErr(e?.response?.data?.message ?? "No se pudo crear la cuenta.");
+      // Muestra el motivo real que devuelve el backend (validacion o Keycloak).
+      setErr(e?.response?.data?.message ?? "No se pudo crear la cuenta. Revisa los datos e intenta de nuevo.");
       setSending(false);
     }
   }
@@ -66,11 +87,11 @@ export function Register() {
           <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ana@empresa.cl" />
         </Field>
         <Field label="RUT">
-          <TextInput value={rut} onChange={(e) => setRut(e.target.value)} placeholder="12.345.678-9" />
+          <TextInput value={rut} onChange={(e) => setRut(formatRut(e.target.value))} placeholder="12.345.678-9" inputMode="numeric" />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Contraseña">
-            <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" />
+            <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </Field>
           <Field label="Perfil">
             <SelectInput value={role} onChange={(e) => setRole(e.target.value)}>
@@ -78,6 +99,9 @@ export function Register() {
             </SelectInput>
           </Field>
         </div>
+        <p className="text-[11px] text-fg-subtle -mt-1 mb-1">
+          Mínimo 8 caracteres, con mayúscula, minúscula y un carácter especial (.,-{`{}`}+…).
+        </p>
         {err && <p className="mt-1 mb-2 text-[12px] text-danger">{err}</p>}
         <Button variant="primary" size="md" className="w-full mt-2" disabled={sending}>
           {sending ? "Creando..." : "Crear cuenta"}
