@@ -37,6 +37,7 @@ están distribuidos en distintas ubicaciones geográficas.
 | Build & runtime FE | Vite (build) → Nginx Alpine (serve) | — |
 | Build tool | Maven multi-module | 3.9+ |
 | Contenedores | Docker + Docker Compose | — |
+| Orquestación | Kubernetes (Docker Desktop) + Kustomize | — |
 
 ## Componentes y Puertos
 
@@ -57,7 +58,7 @@ están distribuidos en distintas ubicaciones geográficas.
 
 Toda la comunicación interna ocurre sobre la red Docker `innovatech-net`.
 
-> **Pendientes de orquestación** (placeholders comentados en `docker-compose.yml`): MailHog (notificaciones SMTP dev), Prometheus 2.51 y Grafana 10.4 para observabilidad. Los servicios Spring ya exponen `/actuator/prometheus`, falta solo descomentar el bloque y proveer la config.
+> **Observabilidad (no desplegada):** los servicios Spring exponen `/actuator/health` y `/actuator/prometheus`, pero el despliegue actual **no incluye** servidor de métricas (Prometheus/Grafana) ni notificaciones por correo. Quedan como placeholders comentados en `docker-compose.yml` para una iteración futura.
 
 ## Arquitectura de Alto Nivel
 
@@ -420,6 +421,18 @@ docker compose down                     # bajar (preserva volúmenes/datos)
 docker compose down -v                  # bajar BORRANDO datos de las BDs
 ```
 
+### Despliegue en Kubernetes (Docker Desktop)
+
+Además de Docker Compose, el stack se despliega en **Kubernetes**. Las cuatro bases de datos corren como **StatefulSet** (estado persistente, un PVC por réplica) y el resto de los servicios como **Deployment**; los manifiestos están en `backend/k8s/` (Kustomize). El paso a paso completo —incluyendo equipos macOS y Windows— está en **[RUNBOOK.md](RUNBOOK.md)**. Resumen:
+
+```bash
+docker compose build              # construye las imagenes innovatech/*:dev
+./backend/k8s/deploy.sh           # carga imagenes al cluster + aplica los manifiestos
+kubectl -n innovatech get pods    # esperar los 12 pods en Running
+```
+
+Acceso en Kubernetes: Frontend en `http://innovatech.localhost` (Ingress), API Gateway en `:9000` y Keycloak en `:8080` (Service LoadBalancer).
+
 ## URLs de Referencia
 
 | Servicio | URL |
@@ -440,8 +453,8 @@ docker compose down -v                  # bajar BORRANDO datos de las BDs
 - Endpoints REST: kebab-case plural (`/projects`, `/resources`, `/kpis/history`).
 
 **Git:**
-- Ramas: `PROD` (estable) ← `main` (deployable) ← `dev` (trabajo activo) ← `feature/*`, `fix/*`.
-- Commits en español, una línea, formato: `<Prefijo> <componentes>` sin dos puntos. Prefijos: `Se agrega`, `Se corrige`, `Refactorización`, `Nueva tarea`, `Documentación`, `Estilo`, `Pruebas`.
+- Flujo de ramas: `refactorNajeeb` (trabajo) → `dev` (integración) → `main` (estable / entregable), siempre vía **Pull Request**. Nunca se commitea directo a `main`.
+- Commits en español, formato convencional: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`.
 
 ## Roles y Permisos
 
@@ -496,4 +509,4 @@ Selección curada de proyectos open source con stack o patrones equivalentes (Sp
 
 ---
 
-_Documentación actualizada el 2026-05-16. Refleja el estado tras incorporar persistencia histórica en `ms-analytics`, frontend completo (Dashboard real, Proyectos y Recursos con CRUD parcial), filtro de fechas en Dashboard y branding (logo + tipografía corporativa). La vista **Analítica** queda planificada para la siguiente iteración._
+_Documentación actualizada en junio 2026. Incorpora el despliegue en **Kubernetes** (bases como StatefulSet, ver [RUNBOOK.md](RUNBOOK.md)), el registro/login con Keycloak (CORS resuelto), refactors de los controllers (lógica en services y lectura del JWT en el DTO `AuthenticatedUser`), y los entregables en `docs/`: informe técnico, descripción de la persistencia, informe de pruebas con cobertura, diagramas C4 y API REST (OpenAPI + Postman). La vista **Analítica** del frontend queda planificada para la siguiente iteración._
