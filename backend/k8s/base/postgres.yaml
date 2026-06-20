@@ -1,0 +1,192 @@
+# Database per Service: una PostgreSQL por microservicio + la de Keycloak.
+# ---------------- db-projects ----------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-projects-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-projects
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: db-projects }
+  template:
+    metadata:
+      labels: { app: db-projects }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_DB, valueFrom: { configMapKeyRef: { name: innovatech-config, key: DB_PROJECTS_NAME } } }
+            - { name: POSTGRES_USER, valueFrom: { configMapKeyRef: { name: innovatech-config, key: DB_PROJECTS_USER } } }
+            - { name: POSTGRES_PASSWORD, valueFrom: { secretKeyRef: { name: innovatech-secrets, key: DB_PROJECTS_PASSWORD } } }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "projects_user", "-d", "projects"] }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: db-projects-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-projects
+spec:
+  selector: { app: db-projects }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+# ---------------- db-resources ----------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-resources-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-resources
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: db-resources }
+  template:
+    metadata:
+      labels: { app: db-resources }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_DB, valueFrom: { configMapKeyRef: { name: innovatech-config, key: DB_RESOURCES_NAME } } }
+            - { name: POSTGRES_USER, valueFrom: { configMapKeyRef: { name: innovatech-config, key: DB_RESOURCES_USER } } }
+            - { name: POSTGRES_PASSWORD, valueFrom: { secretKeyRef: { name: innovatech-secrets, key: DB_RESOURCES_PASSWORD } } }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "resources_user", "-d", "resources"] }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: db-resources-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-resources
+spec:
+  selector: { app: db-resources }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+# ---------------- db-analytics ----------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-analytics-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-analytics
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: db-analytics }
+  template:
+    metadata:
+      labels: { app: db-analytics }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_DB, valueFrom: { configMapKeyRef: { name: innovatech-config, key: DB_ANALYTICS_NAME } } }
+            - { name: POSTGRES_USER, valueFrom: { configMapKeyRef: { name: innovatech-config, key: DB_ANALYTICS_USER } } }
+            - { name: POSTGRES_PASSWORD, valueFrom: { secretKeyRef: { name: innovatech-secrets, key: DB_ANALYTICS_PASSWORD } } }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "analytics_user", "-d", "analytics"] }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: db-analytics-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-analytics
+spec:
+  selector: { app: db-analytics }
+  ports: [{ port: 5432, targetPort: 5432 }]
+---
+# ---------------- db-keycloak ----------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-keycloak-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: db-keycloak }
+  template:
+    metadata:
+      labels: { app: db-keycloak }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_DB, value: "keycloak" }
+            - { name: POSTGRES_USER, valueFrom: { configMapKeyRef: { name: innovatech-config, key: KC_DB_USERNAME } } }
+            - { name: POSTGRES_PASSWORD, valueFrom: { secretKeyRef: { name: innovatech-secrets, key: KC_DB_PASSWORD } } }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "keycloak", "-d", "keycloak"] }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: db-keycloak-pvc }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-keycloak
+spec:
+  selector: { app: db-keycloak }
+  ports: [{ port: 5432, targetPort: 5432 }]
