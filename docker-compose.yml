@@ -157,7 +157,7 @@ services:
   ms-projects:
     build:
       context: ./backend
-      dockerfile: services/ms-projects/Dockerfile
+      dockerfile: ms-projects/Dockerfile
     image: innovatech/ms-projects:dev
     container_name: ms-projects
     networks: [innovatech-net]
@@ -179,7 +179,7 @@ services:
   ms-resources:
     build:
       context: ./backend
-      dockerfile: services/ms-resources/Dockerfile
+      dockerfile: ms-resources/Dockerfile
     image: innovatech/ms-resources:dev
     container_name: ms-resources
     networks: [innovatech-net]
@@ -201,7 +201,7 @@ services:
   ms-analytics:
     build:
       context: ./backend
-      dockerfile: services/ms-analytics/Dockerfile
+      dockerfile: ms-analytics/Dockerfile
     image: innovatech/ms-analytics:dev
     container_name: ms-analytics
     networks: [innovatech-net]

@@ -33,9 +33,9 @@
         <module>eureka-server</module>
         <module>api-gateway</module>
         <module>bff</module>
-        <module>services/ms-projects</module>
-        <module>services/ms-resources</module>
-        <module>services/ms-analytics</module>
+        <module>ms-projects</module>
+        <module>ms-resources</module>
+        <module>ms-analytics</module>
     </modules>
 
     <properties>

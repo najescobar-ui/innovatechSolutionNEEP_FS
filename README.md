@@ -78,6 +78,7 @@ graph TB
 
     User --> FE
     FE --> GW
+    GW --> KC
     FE --> KC
     KC --> DBKC
     GW --> BFF

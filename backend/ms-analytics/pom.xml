@@ -9,7 +9,7 @@
         <groupId>cl.duoc.innovatech</groupId>
         <artifactId>innovatech-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>ms-analytics</artifactId>

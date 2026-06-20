@@ -9,7 +9,7 @@ Este proyecto **no usa arquetipos Maven generadores** (`mvn archetype:generate` 
 - Configura plugins de build (compiler con annotation processors de Lombok + MapStruct, spring-boot-maven-plugin).
 - Sirve como base obligatoria para crear un nuevo microservicio: el módulo nuevo solo declara `<parent>` y obtiene **todo el stack heredado**.
 
-Si en algún momento se requiere un arquetipo generador real, se puede empaquetar el contenido de `services/ms-projects/` como `archetype-resources/` y publicarlo, pero hoy no es necesario.
+Si en algún momento se requiere un arquetipo generador real, se puede empaquetar el contenido de `ms-projects/` como `archetype-resources/` y publicarlo, pero hoy no es necesario.
 
 ## POM padre — `pom.xml`
 
@@ -49,9 +49,9 @@ Hereda directamente de `spring-boot-starter-parent:4.0.0`.
   <module>eureka-server</module>
   <module>api-gateway</module>
   <module>bff</module>
-  <module>services/ms-projects</module>
-  <module>services/ms-resources</module>
-  <module>services/ms-analytics</module>
+  <module>ms-projects</module>
+  <module>ms-resources</module>
+  <module>ms-analytics</module>
 </modules>
 ```
 
@@ -62,7 +62,7 @@ Pasos para agregar un microservicio nuevo (ej. `ms-notifications`):
 ### 1. Crear la estructura de carpetas
 
 ```
-services/ms-notifications/
+ms-notifications/
 ├── src/main/java/cl/duoc/innovatech/notificaciones/
 │   └── MsNotificacionesApplication.java
 ├── src/main/resources/
@@ -83,7 +83,7 @@ services/ms-notifications/
         <groupId>cl.duoc.innovatech</groupId>
         <artifactId>innovatech-parent</artifactId>
         <version>0.1.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>ms-notifications</artifactId>
@@ -131,7 +131,7 @@ Editar el `pom.xml` raíz:
 ```xml
 <modules>
   ...
-  <module>services/ms-notifications</module>
+  <module>ms-notifications</module>
 </modules>
 ```
 
@@ -189,7 +189,7 @@ Multi-stage `eclipse-temurin:25-jdk` para build → `eclipse-temurin:25-jre-alpi
 ms-notifications:
   build:
     context: .
-    dockerfile: services/ms-notifications/Dockerfile
+    dockerfile: ms-notifications/Dockerfile
   image: innovatech/ms-notifications:dev
   container_name: ms-notifications
   networks: [innovatech-net]
@@ -242,7 +242,7 @@ innovatech-parent (pom.xml raíz)
         ├─ eureka-server
         ├─ api-gateway
         ├─ bff
-        ├─ services/ms-projects
-        ├─ services/ms-resources
-        └─ services/ms-analytics
+        ├─ ms-projects
+        ├─ ms-resources
+        └─ ms-analytics
 ```
