@@ -5,6 +5,8 @@ import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { Projects } from "./pages/Projects";
 import { Resources } from "./pages/Resources";
+import { Tasks } from "./pages/Tasks";
+import { Analytics } from "./pages/Analytics";
 
 function Loading() {
   return (
@@ -26,6 +28,8 @@ function AppRoutes() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/resources" element={<Resources />} />
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* cualquier ruta vieja o futura cae al dashboard mientras tanto */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

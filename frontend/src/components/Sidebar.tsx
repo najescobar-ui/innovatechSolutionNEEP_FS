@@ -4,16 +4,20 @@ import {
   LayoutDashboard,
   FolderKanban,
   Users,
+  ListTodo,
+  BarChart3,
   LogOut,
   ChevronsUpDown,
 } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 
-/** "Analytics" oculta hasta que se libere su vista (proxima iteracion). */
-const items = [
+/** Analytics queda restringida a DIR; el resto es visible para todos los roles. */
+const NAV = [
   { to: "/",          label: "Dashboard", Icon: LayoutDashboard },
   { to: "/projects",  label: "Projects",  Icon: FolderKanban },
   { to: "/resources", label: "Resources", Icon: Users },
+  { to: "/tasks",     label: "Tasks",     Icon: ListTodo },
+  { to: "/analytics", label: "Analytics", Icon: BarChart3, roles: ["DIR"] },
 ];
 
 function initials(name: string) {
@@ -26,6 +30,8 @@ function initials(name: string) {
 }
 
 export function Sidebar() {
+  const { roles } = useAuth();
+  const items = NAV.filter((i) => !i.roles || i.roles.some((r) => roles.includes(r)));
   return (
     <aside className="w-60 shrink-0 bg-bg text-fg flex flex-col border-r border-border">
       <div className="px-5 pt-4 pb-3 flex flex-col items-start gap-1.5">
