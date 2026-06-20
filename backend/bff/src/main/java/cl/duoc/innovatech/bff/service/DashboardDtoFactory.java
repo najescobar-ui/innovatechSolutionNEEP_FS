@@ -2,6 +2,7 @@ package cl.duoc.innovatech.bff.service;
 
 import cl.duoc.innovatech.bff.domain.DashboardDto;
 import cl.duoc.innovatech.bff.domain.ProjectSummary;
+import cl.duoc.innovatech.bff.domain.TaskSummary;
 import cl.duoc.innovatech.bff.domain.UserRole;
 import org.springframework.stereotype.Component;
 
@@ -13,34 +14,39 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Antes era hardcoded. Ahora deriva valores de las fuentes reales:
- *   - utilizacion / proyectos activos / atrasados: vienen de ms-analytics via KpisService
- *   - listas de proyectos en curso / hitos: se calculan desde ProjectsService
- * Si un upstream cae, el circuit breaker devuelve "datos no disponibles" y los
- * numeros caen a 0 (mejor mostrar cero que un valor erroneo).
+ * Arma el dashboard segun rol con datos reales:
+ *   - utilizacion / proyectos activos / atrasados y tareas atrasadas: de ms-analytics via KpisService
+ *   - listas de proyectos en curso / hitos: de ProjectsService
+ *   - tareas asignadas / pendientes del DEV: se resuelve el recurso por email (JWT) y se cuentan sus tareas
+ * Si un upstream cae, el circuit breaker degrada a "datos no disponibles" y los numeros caen a 0.
  */
 @Component
 public class DashboardDtoFactory {
 
-    private static final Set<String> ESTADOS_ACTIVOS = Set.of("PLANNING", "IN_PROGRESS");
     private static final Set<String> ESTADOS_TERMINADOS = Set.of("COMPLETED", "CANCELLED");
+    private static final Set<String> TAREAS_PENDIENTES = Set.of("TODO", "IN_PROGRESS");
     private static final DateTimeFormatter F = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final KpisService kpisService;
     private final ProjectsService projectsService;
+    private final ResourcesService resourcesService;
+    private final TasksService tasksService;
 
-    public DashboardDtoFactory(KpisService kpisService, ProjectsService projectsService) {
+    public DashboardDtoFactory(KpisService kpisService, ProjectsService projectsService,
+                               ResourcesService resourcesService, TasksService tasksService) {
         this.kpisService = kpisService;
         this.projectsService = projectsService;
+        this.resourcesService = resourcesService;
+        this.tasksService = tasksService;
     }
 
-    public DashboardDto create(UserRole role) {
+    public DashboardDto create(UserRole role, String email) {
         var kpi = kpisService.get();
         var projects = projectsService.list().items();
 
         return switch (role) {
             case PM  -> pmDashboard(kpi, projects);
-            case DEV -> devDashboard(projects);
+            case DEV -> devDashboard(projects, email);
             case DIR -> dirDashboard(kpi);
         };
     }
@@ -49,7 +55,7 @@ public class DashboardDtoFactory {
         int supervised = (int) projects.stream()
                 .filter(p -> !ESTADOS_TERMINADOS.contains(p.status()))
                 .count();
-        int atRisk = intOf(kpi, "delayedProjects");
+        int atRisk = intOf(kpi, "delayedTasks");
 
         /* proximos 3 proyectos con fechaFin en el futuro, ordenados ascendente */
         var hoy = LocalDate.now();
@@ -64,16 +70,30 @@ public class DashboardDtoFactory {
         return new DashboardDto.PMDashboard("PM", supervised, atRisk, milestones);
     }
 
-    private DashboardDto.DevDashboard devDashboard(List<ProjectSummary> projects) {
-        /*
-         * No hay tabla de tareas/asignaciones aun, asi que esos campos quedan en 0
-         * y se hidratan cuando exista la entidad. "OngoingProjects" si se puede.
-         */
+    private DashboardDto.DevDashboard devDashboard(List<ProjectSummary> projects, String email) {
         var ongoing = projects.stream()
                 .filter(p -> "IN_PROGRESS".equals(p.status()))
                 .map(ProjectSummary::name)
                 .toList();
-        return new DashboardDto.DevDashboard("DEV", 0, 0, ongoing);
+
+        /*
+         * Resolvemos el recurso del usuario por su email (del JWT) y contamos sus
+         * tareas. Si no hay email, no existe recurso o el upstream cae, queda en 0.
+         */
+        int assigned = 0;
+        int pending = 0;
+        if (email != null && !email.isBlank()) {
+            var recurso = resourcesService.byEmail(email);
+            if (recurso.isPresent()) {
+                List<TaskSummary> misTareas = tasksService.listForAssignee(recurso.get().id());
+                assigned = misTareas.size();
+                pending = (int) misTareas.stream()
+                        .filter(t -> TAREAS_PENDIENTES.contains(t.status()))
+                        .count();
+            }
+        }
+
+        return new DashboardDto.DevDashboard("DEV", assigned, pending, ongoing);
     }
 
     private DashboardDto.DirDashboard dirDashboard(Map<String, Object> kpi) {

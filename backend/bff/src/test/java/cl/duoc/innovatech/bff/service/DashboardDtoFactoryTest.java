@@ -3,6 +3,8 @@ package cl.duoc.innovatech.bff.service;
 import cl.duoc.innovatech.bff.domain.DashboardDto;
 import cl.duoc.innovatech.bff.domain.ProjectSummary;
 import cl.duoc.innovatech.bff.domain.ProjectsResponse;
+import cl.duoc.innovatech.bff.domain.ResourceSummary;
+import cl.duoc.innovatech.bff.domain.TaskSummary;
 import cl.duoc.innovatech.bff.domain.UserRole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -26,11 +29,21 @@ class DashboardDtoFactoryTest {
     @Mock
     ProjectsService projects;
 
+    @Mock
+    ResourcesService resources;
+
+    @Mock
+    TasksService tasks;
+
     @InjectMocks
     DashboardDtoFactory factory;
 
     private ProjectSummary p(long id, String name, String status, LocalDate fin) {
         return new ProjectSummary(id, name, "desc", status, LocalDate.now(), fin, "user-x");
+    }
+
+    private TaskSummary t(long id, String status) {
+        return new TaskSummary(id, 1L, "Tarea " + id, "desc", status, 7L, 8, LocalDate.now().plusDays(5));
     }
 
     private List<ProjectSummary> dataset() {
@@ -53,7 +66,7 @@ class DashboardDtoFactoryTest {
         ));
         when(projects.list()).thenReturn(ProjectsResponse.ok(List.of()));
 
-        var dto = factory.create(UserRole.DIR);
+        var dto = factory.create(UserRole.DIR, null);
 
         assertThat(dto).isInstanceOf(DashboardDto.DirDashboard.class);
         var dir = (DashboardDto.DirDashboard) dto;
@@ -68,7 +81,7 @@ class DashboardDtoFactoryTest {
         when(kpis.get()).thenReturn(Map.of("status", "datos no disponibles"));
         when(projects.list()).thenReturn(ProjectsResponse.unavailable());
 
-        var dto = (DashboardDto.DirDashboard) factory.create(UserRole.DIR);
+        var dto = (DashboardDto.DirDashboard) factory.create(UserRole.DIR, null);
 
         assertThat(dto.activeProjects()).isZero();
         assertThat(dto.utilizationPercentage()).isZero();
@@ -76,29 +89,44 @@ class DashboardDtoFactoryTest {
     }
 
     @Test
-    void crearPm_supervisadosExcluyeTerminados() {
-        when(kpis.get()).thenReturn(Map.of("delayedProjects", 1));
+    void crearPm_supervisadosExcluyeTerminadosYTasksAtRiskReal() {
+        when(kpis.get()).thenReturn(Map.of("delayedTasks", 4));
         when(projects.list()).thenReturn(ProjectsResponse.ok(dataset()));
 
-        var pm = (DashboardDto.PMDashboard) factory.create(UserRole.PM);
+        var pm = (DashboardDto.PMDashboard) factory.create(UserRole.PM, null);
 
         /* 5 total - 1 completado - 1 cancelado = 3 supervisados */
         assertThat(pm.supervisedProjects()).isEqualTo(3);
-        assertThat(pm.tasksAtRisk()).isEqualTo(1);
-        /* hitos: top 3 con fechaFin futura, ordenados ascendente */
+        assertThat(pm.tasksAtRisk()).isEqualTo(4);   // viene de delayedTasks (KPI real)
         assertThat(pm.upcomingMilestones()).hasSizeLessThanOrEqualTo(3);
-        /* el primer hito debe ser el de fecha mas cercana (Activo prox., +7 dias) */
         assertThat(pm.upcomingMilestones().get(0)).contains("Activo prox.");
     }
 
     @Test
-    void crearDev_listaSoloEnCurso() {
+    void crearDev_cuentaTareasDelRecursoResueltoPorEmail() {
         when(kpis.get()).thenReturn(Map.of());
         when(projects.list()).thenReturn(ProjectsResponse.ok(dataset()));
+        when(resources.byEmail("dev@innovatech.cl")).thenReturn(Optional.of(
+                new ResourceSummary(7L, "Dev Uno", "dev@innovatech.cl", "DEV", 40, "Java", true)));
+        when(tasks.listForAssignee(7L)).thenReturn(List.of(
+                t(1, "TODO"), t(2, "IN_PROGRESS"), t(3, "DONE"), t(4, "TODO")
+        ));
 
-        var dev = (DashboardDto.DevDashboard) factory.create(UserRole.DEV);
+        var dev = (DashboardDto.DevDashboard) factory.create(UserRole.DEV, "dev@innovatech.cl");
 
         assertThat(dev.ongoingProjects()).containsExactlyInAnyOrder("Activo 1", "Activo prox.");
+        assertThat(dev.assignedTasks()).isEqualTo(4);
+        assertThat(dev.pendingTasks()).isEqualTo(3);   // TODO + IN_PROGRESS, DONE no cuenta
+    }
+
+    @Test
+    void crearDev_sinRecursoQuedaEnCero() {
+        when(kpis.get()).thenReturn(Map.of());
+        when(projects.list()).thenReturn(ProjectsResponse.ok(dataset()));
+        when(resources.byEmail("nadie@x.cl")).thenReturn(Optional.empty());
+
+        var dev = (DashboardDto.DevDashboard) factory.create(UserRole.DEV, "nadie@x.cl");
+
         assertThat(dev.assignedTasks()).isZero();
         assertThat(dev.pendingTasks()).isZero();
     }

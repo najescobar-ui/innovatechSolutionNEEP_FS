@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class ResourcesService {
 
@@ -28,6 +30,16 @@ public class ResourcesService {
                 ex -> {
                     log.warn("ms-resources cayo, devolviendo fallback ({})", ex.getMessage());
                     return ResourcesResponse.unavailable();
+                });
+    }
+
+    /** Resuelve el recurso de un usuario por email (para el dashboard DEV). Vacio si no existe o falla. */
+    public Optional<ResourceSummary> byEmail(String email) {
+        return breakers.create("resources").run(
+                () -> Optional.ofNullable(client.byEmail(email)),
+                ex -> {
+                    log.warn("ms-resources by-email cayo, fallback vacio ({})", ex.getMessage());
+                    return Optional.empty();
                 });
     }
 

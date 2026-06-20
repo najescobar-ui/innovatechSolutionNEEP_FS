@@ -26,6 +26,15 @@ public class ResourcesClient {
                 .body(new ParameterizedTypeReference<List<ResourceSummary>>() {});
     }
 
+    /** Resuelve un recurso por email. Devuelve null si no existe (404 no lanza). */
+    public ResourceSummary byEmail(String email) {
+        return http.get()
+                .uri(uri -> uri.path("/resources/by-email").queryParam("email", email).build())
+                .retrieve()
+                .onStatus(s -> s.value() == 404, (request, response) -> { })
+                .body(ResourceSummary.class);
+    }
+
     public ResourceSummary create(CreateResourceRequest req) {
         return http.post()
                 .uri("/resources")

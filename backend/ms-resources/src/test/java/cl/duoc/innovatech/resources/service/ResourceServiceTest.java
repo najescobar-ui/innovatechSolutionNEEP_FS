@@ -107,4 +107,22 @@ class ResourceServiceTest {
         assertThat(opt).isEmpty();
         verify(repo, never()).save(any());
     }
+
+    @Test
+    void buscarPorEmail_encontrado() {
+        when(repo.findByEmail("ana@innovatech.cl")).thenReturn(Optional.of(ana()));
+
+        var opt = service.findByEmail("ana@innovatech.cl");
+
+        assertThat(opt).isPresent();
+        assertThat(opt.get().id()).isEqualTo(1L);
+        assertThat(opt.get().role()).isEqualTo(ResourceRole.DEV);
+    }
+
+    @Test
+    void buscarPorEmail_noEncontrado() {
+        when(repo.findByEmail("nadie@x.cl")).thenReturn(Optional.empty());
+
+        assertThat(service.findByEmail("nadie@x.cl")).isEmpty();
+    }
 }
