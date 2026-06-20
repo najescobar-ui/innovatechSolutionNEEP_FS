@@ -23,8 +23,8 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
-      "redirectUris": ["http://localhost:3000/*", "http://localhost:9000/*"],
-      "webOrigins": ["http://localhost:3000", "http://localhost:9000", "+"],
+      "redirectUris": ["http://innovatech.localhost/*", "http://localhost:3000/*", "http://localhost:9000/*"],
+      "webOrigins": ["http://innovatech.localhost", "http://localhost:3000", "http://localhost:9000", "+"],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       }

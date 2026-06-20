@@ -32,8 +32,8 @@ export function Login() {
   return (
     <AuthShell title="Iniciar sesión" subtitle="Accede a tu panel de Innovatech.">
       <form onSubmit={submit}>
-        <Field label="Usuario o email">
-          <TextInput value={username} onChange={(e) => setUsername(e.target.value)} placeholder="dev" autoFocus />
+        <Field label="Usuario (email)">
+          <TextInput value={username} onChange={(e) => setUsername(e.target.value)} placeholder="ana@empresa.cl" autoFocus />
         </Field>
         <Field label="Contraseña">
           <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" />
