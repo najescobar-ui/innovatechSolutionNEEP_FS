@@ -27,5 +27,7 @@ public record RegisterRequest(
                 message = "La contraseña debe tener mínimo 8 caracteres, con mayúscula, minúscula y un carácter especial")
         String password,
 
+        @NotBlank(message = "El perfil es requerido")
+        @Pattern(regexp = "DEV|PM|DIR", message = "Perfil inválido; use DEV, PM o DIR")
         String role
 ) {}
