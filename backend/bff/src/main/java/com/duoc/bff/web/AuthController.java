@@ -2,6 +2,7 @@ package com.duoc.bff.web;
 
 import com.duoc.bff.domain.RegisterRequest;
 import com.duoc.bff.service.KeycloakAdminService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,15 +28,10 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, String> register(@RequestBody RegisterRequest req) {
-        if (req.email() == null || req.email().isBlank()) {
-            throw new IllegalArgumentException("email es requerido");
-        }
-        if (req.password() == null || req.password().isBlank()) {
-            throw new IllegalArgumentException("password es requerido");
-        }
+    public Map<String, String> register(@Valid @RequestBody RegisterRequest req) {
+        // firstName/lastName/email/rut/password se validan con Jakarta (ver RegisterRequest).
         if (req.role() == null || !VALID_ROLES.contains(req.role())) {
-            throw new IllegalArgumentException("perfil invalido; use DEV, PM o DIR");
+            throw new IllegalArgumentException("Perfil inválido; use DEV, PM o DIR");
         }
         keycloak.register(req);
         return Map.of("status", "created", "email", req.email(), "role", req.role());

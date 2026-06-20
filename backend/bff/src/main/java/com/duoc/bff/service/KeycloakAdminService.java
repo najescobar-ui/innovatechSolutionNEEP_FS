@@ -91,8 +91,23 @@ public class KeycloakAdminService {
                     .retrieve()
                     .toBodilessEntity();
         } catch (HttpClientErrorException.Conflict e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya esta registrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El email ya está registrado");
+        } catch (HttpClientErrorException e) {
+            // Propaga el motivo real que devuelve Keycloak (password policy, email, etc.).
+            throw new ResponseStatusException(HttpStatus.valueOf(e.getStatusCode().value()), keycloakError(e));
         }
+    }
+
+    /** Extrae un mensaje legible del cuerpo de error de Keycloak. */
+    private static String keycloakError(HttpClientErrorException e) {
+        var body = e.getResponseBodyAsString();
+        for (var key : List.of("errorMessage", "error_description", "error")) {
+            var m = java.util.regex.Pattern
+                    .compile("\"" + key + "\"\\s*:\\s*\"([^\"]+)\"")
+                    .matcher(body == null ? "" : body);
+            if (m.find()) return "Keycloak: " + m.group(1);
+        }
+        return "Keycloak rechazó el registro (HTTP " + e.getStatusCode().value() + ")";
     }
 
     private String findUserId(String token, String email) {
