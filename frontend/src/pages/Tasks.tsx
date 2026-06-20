@@ -73,7 +73,7 @@ export function Tasks() {
   useEffect(() => {
     load();
     api.get<{ items: Project[] }>("/projects").then((r) => setProjects(r.data.items ?? [])).catch(() => {});
-    api.get<Resource[]>("/resources").then((r) => setResources(r.data ?? [])).catch(() => {});
+    api.get<{ items: Resource[] }>("/resources").then((r) => setResources(r.data.items ?? [])).catch(() => {});
   }, []);
 
   const projectName = (id: number) => projects.find((p) => p.id === id)?.name ?? `#${id}`;
