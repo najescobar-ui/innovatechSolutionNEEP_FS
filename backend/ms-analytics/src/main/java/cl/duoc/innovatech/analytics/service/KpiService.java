@@ -3,6 +3,7 @@ package cl.duoc.innovatech.analytics.service;
 import cl.duoc.innovatech.analytics.dto.KpiResponse;
 import cl.duoc.innovatech.analytics.dto.ProjectView;
 import cl.duoc.innovatech.analytics.dto.ResourceView;
+import cl.duoc.innovatech.analytics.dto.TaskView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,27 +19,32 @@ public class KpiService {
 
     private static final Logger log = LoggerFactory.getLogger(KpiService.class);
 
-    /** Estados que cuentan para "activos" y "atrasados". */
+    /** Estados de proyecto que cuentan para "activos" y "atrasados". */
     private static final Set<String> ACTIVE = Set.of("PLANNING", "IN_PROGRESS");
     private static final Set<String> FINISHED = Set.of("COMPLETED", "CANCELLED");
 
-    /** Tope teorico para calcular utilizacion: 40h/semana es la jornada completa. */
-    private static final double FULL_WEEK_HOURS = 40.0;
+    /** Estados de tarea que consumen capacidad (demanda). DONE no demanda. */
+    private static final Set<String> TASK_ACTIVE = Set.of("TODO", "IN_PROGRESS", "BLOCKED");
+    private static final String TASK_DONE = "DONE";
 
     private final ProjectsClient projects;
     private final ResourcesClient resources;
+    private final TasksClient tasks;
 
-    public KpiService(ProjectsClient projects, ResourcesClient resources) {
+    public KpiService(ProjectsClient projects, ResourcesClient resources, TasksClient tasks) {
         this.projects = projects;
         this.resources = resources;
+        this.tasks = tasks;
     }
 
     public KpiResponse calculate() {
         List<ProjectView> ps;
         List<ResourceView> rs;
+        List<TaskView> ts;
         try {
             ps = projects.list();
             rs = resources.list();
+            ts = tasks.list();
         } catch (IllegalStateException e) {
             log.warn("KPI no disponible: {}", e.getMessage());
             return KpiResponse.unavailable();
@@ -62,16 +68,32 @@ public class KpiService {
         double avg = totalActive == 0 ? 0.0 : (double) capacity / totalActive;
 
         /*
-         * Utilizacion proxy: promedio de horas comprometidas vs jornada full (40h).
-         * Cuando exista una tabla de asignaciones reales se reemplaza por la formula
-         * "horas asignadas / capacidad total".
+         * Utilizacion REAL: demanda (horas estimadas de tareas activas asignadas a
+         * recursos activos) sobre la capacidad total semanal. Acotada a 1.0 (100%).
          */
-        double utilization = totalActive == 0 ? 0.0 : Math.min(1.0, avg / FULL_WEEK_HOURS);
+        var activeResourceIds = activeResources.stream()
+                .map(ResourceView::id)
+                .collect(Collectors.toSet());
+        int demand = ts.stream()
+                .filter(t -> t.status() != null && TASK_ACTIVE.contains(t.status()))
+                .filter(t -> t.assigneeResourceId() != null && activeResourceIds.contains(t.assigneeResourceId()))
+                .mapToInt(t -> t.estimatedHours() != null ? t.estimatedHours() : 0)
+                .sum();
+        double utilization = capacity == 0 ? 0.0 : Math.min(1.0, (double) demand / capacity);
 
         Map<String, Long> byRole = activeResources.stream()
                 .collect(Collectors.groupingBy(ResourceView::role, Collectors.counting()));
         Map<String, Long> byStatus = ps.stream()
                 .collect(Collectors.groupingBy(ProjectView::status, Collectors.counting()));
+
+        int totalTasks = ts.size();
+        Map<String, Long> tasksByStatus = ts.stream()
+                .filter(t -> t.status() != null)
+                .collect(Collectors.groupingBy(TaskView::status, Collectors.counting()));
+        int delayedTasks = (int) ts.stream()
+                .filter(t -> t.dueDate() != null && t.dueDate().isBefore(hoy))
+                .filter(t -> !TASK_DONE.equals(t.status()))
+                .count();
 
         return new KpiResponse(
                 "ok",
@@ -82,7 +104,10 @@ public class KpiService {
                 Math.round(avg * 100.0) / 100.0,
                 Math.round(utilization * 10000.0) / 10000.0,
                 byRole,
-                byStatus
+                byStatus,
+                totalTasks,
+                delayedTasks,
+                tasksByStatus
         );
     }
 }

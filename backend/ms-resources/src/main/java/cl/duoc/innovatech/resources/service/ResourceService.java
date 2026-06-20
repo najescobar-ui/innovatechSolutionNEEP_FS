@@ -32,6 +32,12 @@ public class ResourceService {
         return toDto(r);
     }
 
+    /** Resuelve un recurso por su email. Lo usa el BFF para mapear usuario (JWT) -> recurso. */
+    @Transactional(readOnly = true)
+    public Optional<ResourceDto> findByEmail(String email) {
+        return repo.findByEmail(email).map(this::toDto);
+    }
+
     @Transactional
     public boolean delete(Long id) {
         if (!repo.existsById(id)) return false;

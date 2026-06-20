@@ -47,7 +47,7 @@ public class BffClientsConfig {
                 .timeoutDuration(Duration.ofSeconds(3))
                 .build();
         return factory -> {
-            for (var name : new String[]{"projects", "resources", "kpis"}) {
+            for (var name : new String[]{"projects", "resources", "kpis", "tasks"}) {
                 factory.configure(b -> b.circuitBreakerConfig(cb).timeLimiterConfig(tl).build(), name);
             }
         };

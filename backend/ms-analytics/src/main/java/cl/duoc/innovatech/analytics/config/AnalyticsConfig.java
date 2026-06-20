@@ -49,6 +49,7 @@ public class AnalyticsConfig {
         return factory -> {
             factory.configure(b -> b.circuitBreakerConfig(cb).timeLimiterConfig(tl).build(), "projects");
             factory.configure(b -> b.circuitBreakerConfig(cb).timeLimiterConfig(tl).build(), "resources");
+            factory.configure(b -> b.circuitBreakerConfig(cb).timeLimiterConfig(tl).build(), "tasks");
         };
     }
 }

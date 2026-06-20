@@ -11,10 +11,14 @@ public record KpiResponse(
         double avgHoursPerResource,
         double utilizationPercentage,
         Map<String, Long> resourcesByRole,
-        Map<String, Long> projectsByStatus
+        Map<String, Long> projectsByStatus,
+        int totalTasks,
+        int delayedTasks,
+        Map<String, Long> tasksByStatus
 ) {
 
     public static KpiResponse unavailable() {
-        return new KpiResponse("datos no disponibles", 0, 0, 0, 0, 0.0, 0.0, Map.of(), Map.of());
+        return new KpiResponse("datos no disponibles", 0, 0, 0, 0, 0.0, 0.0,
+                Map.of(), Map.of(), 0, 0, Map.of());
     }
 }
