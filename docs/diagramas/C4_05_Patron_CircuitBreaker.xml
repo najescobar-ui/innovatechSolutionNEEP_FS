@@ -1,10 +1,10 @@
 <mxfile host="app.diagrams.net"><diagram name="Patrón Circuit Breaker" id="pat-cb">
 <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0"><root>
 <mxCell id="0"/><mxCell id="1" parent="0"/>
-<mxCell id="t" value="&lt;b style='font-size:16px'&gt;Patrón: Circuit Breaker&lt;/b&gt;&lt;br&gt;&lt;i&gt;Implementado con Resilience4j 2.2 en el BFF — Spring Boot 3.2 / JDK 21 LTS&lt;/i&gt;" style="text;html=1;align=center;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1"><mxGeometry x="250" y="10" width="900" height="50" as="geometry"/></mxCell>
+<mxCell id="t" value="&lt;b style='font-size:16px'&gt;Patrón: Circuit Breaker&lt;/b&gt;&lt;br&gt;&lt;i&gt;Implementado con Resilience4j 2.2 en el BFF — Spring Boot 4.0 / JDK 25&lt;/i&gt;" style="text;html=1;align=center;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1"><mxGeometry x="250" y="10" width="900" height="50" as="geometry"/></mxCell>
 
 <!-- BFF -->
-<mxCell id="bff" value="&lt;b&gt;BFF&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 3.2]&lt;/i&gt;&lt;br&gt;Llamada al microservicio" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1"><mxGeometry x="100" y="280" width="200" height="100" as="geometry"/></mxCell>
+<mxCell id="bff" value="&lt;b&gt;BFF&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Boot 4.0]&lt;/i&gt;&lt;br&gt;Llamada al microservicio" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#1168BD;strokeColor=#0B4884;arcSize=5;" vertex="1" parent="1"><mxGeometry x="100" y="280" width="200" height="100" as="geometry"/></mxCell>
 
 <!-- States -->
 <mxCell id="closed" value="&lt;b&gt;CLOSED&lt;/b&gt;&lt;br&gt;&lt;i&gt;Estado normal&lt;/i&gt;&lt;br&gt;&lt;br&gt;Peticiones pasan al MS.&lt;br&gt;Se cuentan fallos." style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;fillColor=#10B981;strokeColor=#059669;" vertex="1" parent="1"><mxGeometry x="420" y="100" width="200" height="170" as="geometry"/></mxCell>
@@ -18,7 +18,7 @@
 <mxCell id="ms" value="&lt;b&gt;Microservicio&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Destino]&lt;/i&gt;&lt;br&gt;Ej: MS Analítica" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;fillColor=#999999;strokeColor=#8A8A8A;arcSize=5;" vertex="1" parent="1"><mxGeometry x="420" y="420" width="200" height="100" as="geometry"/></mxCell>
 
 <!-- Prometheus -->
-<mxCell id="prom" value="&lt;b&gt;Prometheus 2.51&lt;/b&gt;&lt;br&gt;&lt;i&gt;Métricas del CB&lt;/i&gt;&lt;br&gt;resilience4j_circuitbreaker_state&lt;br&gt;resilience4j_circuitbreaker_calls" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontColor=#333333;fillColor=#E6D0F5;strokeColor=#9673A6;arcSize=5;" vertex="1" parent="1"><mxGeometry x="1080" y="420" width="220" height="100" as="geometry"/></mxCell>
+<mxCell id="prom" value="&lt;b&gt;Métricas del Circuit Breaker&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Spring Actuator + Resilience4j]&lt;/i&gt;&lt;br&gt;estado (CLOSED/OPEN/HALF_OPEN)&lt;br&gt;y conteo de llamadas" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontColor=#333333;fillColor=#E6D0F5;strokeColor=#9673A6;arcSize=5;" vertex="1" parent="1"><mxGeometry x="1080" y="420" width="220" height="100" as="geometry"/></mxCell>
 
 <!-- Edges -->
 <mxCell id="e1" value="Llama" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#707070;strokeWidth=2;fontColor=#707070;fontSize=10;" edge="1" parent="1" source="bff" target="closed"><mxGeometry relative="1" as="geometry"/></mxCell>
@@ -28,7 +28,7 @@
 <mxCell id="e5" value="Prueba FALLA" style="rounded=1;html=1;strokeColor=#EF4444;strokeWidth=1;fontColor=#EF4444;fontSize=9;curved=1;dashed=1;" edge="1" parent="1" source="half" target="open"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1190" y="300"/><mxPoint x="860" y="300"/></Array></mxGeometry></mxCell>
 <mxCell id="e6" value="Retorna fallback" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D6A460;strokeWidth=1.5;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="open" target="fb"><mxGeometry relative="1" as="geometry"/></mxCell>
 <mxCell id="e7" value="Pasa petición" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10B981;strokeWidth=1.5;fontColor=#10B981;fontSize=9;" edge="1" parent="1" source="closed" target="ms"><mxGeometry relative="1" as="geometry"/></mxCell>
-<mxCell id="e8" value="Exporta métricas CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673A6;strokeWidth=1;fontColor=#9673A6;fontSize=9;dashed=1;" edge="1" parent="1" source="bff" target="prom"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="560"/><mxPoint x="1190" y="560"/></Array></mxGeometry></mxCell>
+<mxCell id="e8" value="Expone métricas (/actuator)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673A6;strokeWidth=1;fontColor=#9673A6;fontSize=9;dashed=1;" edge="1" parent="1" source="bff" target="prom"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="560"/><mxPoint x="1190" y="560"/></Array></mxGeometry></mxCell>
 
 <mxCell id="note" value="&lt;b&gt;Dimensión ética:&lt;/b&gt; Es más responsable decir &quot;datos no disponibles&quot;&lt;br&gt;que mostrar KPIs erróneos que afecten decisiones sobre personas." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fontSize=10;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;spacingLeft=8;spacingTop=5;" vertex="1" parent="1"><mxGeometry x="100" y="600" width="400" height="60" as="geometry"/></mxCell>
 </root></mxGraphModel></diagram></mxfile>

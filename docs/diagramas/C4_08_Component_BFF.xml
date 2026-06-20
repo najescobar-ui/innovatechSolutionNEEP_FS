@@ -1,0 +1,135 @@
+<mxfile host="app.diagrams.net" modified="2026-06-20" agent="user" type="device">
+  <diagram name="C4 - Component (BFF)" id="c4-comp-bff">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1960" pageHeight="980" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b style='font-size:16px'&gt;C4 Component — Contenedor BFF (Backend for Frontend)&lt;/b&gt;&lt;br&gt;&lt;i&gt;Spring Boot 4.0 / JDK 25 • Orquesta los microservicios y arma la respuesta por rol&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="430" y="10" width="1100" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- API GATEWAY -->
+        <mxCell id="gw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;br&gt;&lt;i&gt;[Contenedor: Spring Cloud Gateway]&lt;/i&gt;&lt;br&gt;Valida el JWT y enruta /api/* al BFF" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="770" y="70" width="420" height="64" as="geometry" />
+        </mxCell>
+
+        <!-- BFF BOUNDARY -->
+        <mxCell id="bff" value="&lt;b&gt;Contenedor: BFF&lt;/b&gt; — &lt;i&gt;Spring Boot 4.0 / JDK 25 (puerto 8084)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontColor=#1168BD;align=left;verticalAlign=top;fillColor=none;strokeColor=#1168BD;strokeWidth=2;dashed=1;dashPattern=8 4;arcSize=1;spacingLeft=12;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="50" y="165" width="1860" height="640" as="geometry" />
+        </mxCell>
+
+        <!-- BARRA DE SEGURIDAD (filtro de toda request) -->
+        <mxCell id="sec" value="&lt;b&gt;SecurityConfig + JwtAuthoritiesConverter&lt;/b&gt;  —  valida el JWT (JWK de Keycloak) y puebla las authorities ROLE_* en cada request (salvo /auth/register)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fontColor=#333333;align=center;verticalAlign=middle;fillColor=#E1D5E7;strokeColor=#9673A6;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="1740" height="42" as="geometry" />
+        </mxCell>
+
+        <!-- CONTROLLERS -->
+        <mxCell id="c_dash" value="&lt;b&gt;DashboardController&lt;/b&gt;&lt;br&gt;GET /dashboard" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="270" width="250" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="c_proj" value="&lt;b&gt;ProjectsController&lt;/b&gt;&lt;br&gt;/projects" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="270" width="240" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="c_res" value="&lt;b&gt;ResourcesController&lt;/b&gt;&lt;br&gt;/resources" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="670" y="270" width="240" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="c_kpi" value="&lt;b&gt;KpisController&lt;/b&gt;&lt;br&gt;/kpis" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="960" y="270" width="240" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="c_task" value="&lt;b&gt;TasksController&lt;/b&gt;&lt;br&gt;/tasks" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="270" width="240" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="c_auth" value="&lt;b&gt;AuthController&lt;/b&gt;&lt;br&gt;/auth/register (público)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="270" width="280" height="58" as="geometry" />
+        </mxCell>
+
+        <!-- AuthenticatedUser (col dashboard) -->
+        <mxCell id="au" value="&lt;b&gt;AuthenticatedUser&lt;/b&gt; &lt;i&gt;[DTO/record]&lt;/i&gt;&lt;br&gt;from(Authentication): rol + email del JWT" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;align=center;fillColor=#E1D5E7;strokeColor=#9673A6;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="356" width="250" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- FILA SERVICIOS / FACTORY / KEYCLOAK-ADMIN -->
+        <mxCell id="factory" value="&lt;b&gt;DashboardDtoFactory&lt;/b&gt; &lt;i&gt;[Factory Method]&lt;/i&gt;&lt;br&gt;Arma el DashboardDto según el rol (PM/DEV/DIR).&lt;br&gt;&lt;i&gt;Consume KpisService y ProjectsService.&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="424" width="250" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="s_proj" value="&lt;b&gt;ProjectsService&lt;/b&gt;&lt;br&gt;&lt;i&gt;lógica + Circuit Breaker&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="430" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="s_res" value="&lt;b&gt;ResourcesService&lt;/b&gt;&lt;br&gt;&lt;i&gt;lógica + Circuit Breaker&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="670" y="430" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="s_kpi" value="&lt;b&gt;KpisService&lt;/b&gt;&lt;br&gt;&lt;i&gt;lógica + Circuit Breaker&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="960" y="430" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="s_task" value="&lt;b&gt;TasksService&lt;/b&gt;&lt;br&gt;&lt;i&gt;lógica + Circuit Breaker&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#1168BD;strokeColor=#0B4884;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="430" width="240" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="kc_adm" value="&lt;b&gt;KeycloakAdminService&lt;/b&gt;&lt;br&gt;&lt;i&gt;Crea el usuario vía Keycloak Admin API&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="430" width="280" height="62" as="geometry" />
+        </mxCell>
+
+        <!-- FILA CLIENTES + BffClientsConfig (col dashboard) -->
+        <mxCell id="cbcfg" value="&lt;b&gt;BffClientsConfig&lt;/b&gt;&lt;br&gt;&lt;i&gt;Resilience4j: configura los Circuit&lt;br&gt;Breakers de los 4 services&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;align=center;fillColor=#FFE6CC;strokeColor=#D6A460;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="548" width="250" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_proj" value="&lt;b&gt;ProjectsClient&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="552" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_res" value="&lt;b&gt;ResourcesClient&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="670" y="552" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_kpi" value="&lt;b&gt;KpisClient&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="960" y="552" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_task" value="&lt;b&gt;TasksClient&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#438DD5;strokeColor=#3C7FC0;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="552" width="240" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- EXTERNOS -->
+        <mxCell id="eur" value="&lt;b&gt;Eureka Server&lt;/b&gt; &lt;i&gt;:8761&lt;/i&gt;&lt;br&gt;&lt;i&gt;Service Discovery: los clients&lt;br&gt;resuelven los ms por aquí (lb://)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#333333;align=center;fillColor=#D5E8D4;strokeColor=#82B366;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="700" width="250" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="ms_proj" value="&lt;b&gt;ms-projects&lt;/b&gt;&lt;br&gt;&lt;i&gt;:8081&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="704" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="ms_res" value="&lt;b&gt;ms-resources&lt;/b&gt;&lt;br&gt;&lt;i&gt;:8082&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="670" y="704" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="ms_ana" value="&lt;b&gt;ms-analytics&lt;/b&gt;&lt;br&gt;&lt;i&gt;:8083&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="960" y="704" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="kc" value="&lt;b&gt;Keycloak&lt;/b&gt;&lt;br&gt;&lt;i&gt;:8080 (IdP)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FFFFFF;align=center;fillColor=#999999;strokeColor=#8A8A8A;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="704" width="280" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- NOTA flujo -->
+        <mxCell id="note" value="&lt;b&gt;Flujo:&lt;/b&gt; Gateway → Controller → (Factory, solo el dashboard) → Service → Client → microservicio.&lt;br&gt;Cada Service envuelve su llamada en un Circuit Breaker (Resilience4j) con fallback &amp;quot;datos no disponibles&amp;quot;.&lt;br&gt;El BFF no tiene base de datos." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fontSize=10;fontColor=#333333;align=left;fillColor=#FFF2CC;strokeColor=#D6B656;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="660" width="570" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES: principalmente verticales -->
+        <mxCell id="e_gw_sec" value="request /api/* (con JWT)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#0B4884;strokeWidth=1.5;fontColor=#0B4884;fontSize=9;" edge="1" parent="1" source="gw" target="sec"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e_dash_au" value="usa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#9673A6;strokeWidth=1.5;fontColor=#9673A6;fontSize=9;" edge="1" parent="1" source="c_dash" target="au"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_au_fac" value="rol + email" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="au" target="factory"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e_cproj" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;" edge="1" parent="1" source="c_proj" target="s_proj"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_cres" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;" edge="1" parent="1" source="c_res" target="s_res"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_ckpi" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;" edge="1" parent="1" source="c_kpi" target="s_kpi"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_ctask" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;" edge="1" parent="1" source="c_task" target="s_task"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_cauth" value="registra" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="c_auth" target="kc_adm"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e_sproj" value="CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="s_proj" target="cl_proj"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_sres" value="CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="s_res" target="cl_res"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_skpi" value="CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="s_kpi" target="cl_kpi"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_stask" value="CB" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#D6A460;strokeWidth=2;fontColor=#D6A460;fontSize=9;" edge="1" parent="1" source="s_task" target="cl_task"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e_clproj" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="cl_proj" target="ms_proj"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_clres" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="cl_res" target="ms_res"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_clkpi" value="REST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="cl_kpi" target="ms_ana"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_cltask" value="/tasks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.7;entryY=1;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;dashed=1;" edge="1" parent="1" source="cl_task" target="ms_proj"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1370" y="650" /><mxPoint x="548" y="650" /></Array></mxGeometry></mxCell>
+        <mxCell id="e_kcadm" value="Admin API" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#707070;strokeWidth=1.5;fontColor=#707070;fontSize=9;" edge="1" parent="1" source="kc_adm" target="kc"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

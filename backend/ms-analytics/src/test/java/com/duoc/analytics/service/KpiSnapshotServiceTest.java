@@ -11,11 +11,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -102,5 +104,58 @@ class KpiSnapshotServiceTest {
         var service = svc(true, 4);
         assertThat(service.between(Instant.now().minusSeconds(100), Instant.now())).hasSize(1);
         assertThat(service.latestBefore(Instant.now())).isEqualTo(s);
+    }
+
+    private KpiSnapshot snap(int daysAgo, double util, int active) {
+        return new KpiSnapshot(Instant.now().minusSeconds(daysAgo * 86400L), active, 1, 5, 200, 40.0, util);
+    }
+
+    @Test
+    void history_defaultUsesLatestPoints() {
+        // repo devuelve DESC; el service invierte a ASC -> ult = el mas reciente
+        when(repo.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(snap(0, 0.5, 4), snap(10, 0.4, 3))));
+        when(repo.findLatestAtOrBefore(any())).thenReturn(Optional.of(snap(30, 0.3, 2)));
+
+        var resp = svc(true, 4).history(12, null, null);
+
+        assertThat(resp.status()).isEqualTo("ok");
+        assertThat(resp.utilization()).hasSize(2);
+        assertThat(resp.deltas().activeProjects()).isEqualTo(4 - 2);
+    }
+
+    @Test
+    void history_emptySerieReturnsEmpty() {
+        when(repo.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+        var resp = svc(true, 4).history(12, null, null);
+
+        assertThat(resp.status()).isEqualTo("datos no disponibles");
+    }
+
+    @Test
+    void history_toBeforeFrom_throws() {
+        var s = svc(true, 4);
+        assertThatThrownBy(() -> s.history(12, LocalDate.now(), LocalDate.now().minusDays(3)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void history_rangeOver30Days_throws() {
+        var s = svc(true, 4);
+        assertThatThrownBy(() -> s.history(12, LocalDate.now().minusDays(40), LocalDate.now()))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void history_withValidRange_usesBetween() {
+        when(repo.findByCapturedAtBetweenOrderByCapturedAtAsc(any(), any()))
+                .thenReturn(List.of(snap(5, 0.4, 3)));
+        when(repo.findLatestAtOrBefore(any())).thenReturn(Optional.empty());
+
+        var resp = svc(true, 4).history(12, LocalDate.now().minusDays(10), LocalDate.now());
+
+        assertThat(resp.status()).isEqualTo("ok");
+        assertThat(resp.activeProjects()).hasSize(1);
     }
 }
