@@ -55,10 +55,10 @@ export function Projects() {
   const [status, setStatus] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
 
-  // edicion fila a fila
+  /* edicion fila a fila */
   const [toEdit, setToEdit] = useState<Project | null>(null);
 
-  // seleccion multiple para borrado en lote (solo DIR)
+  /* seleccion multiple para borrado en lote (solo DIR) */
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [errBulk, setErrBulk] = useState<string | null>(null);

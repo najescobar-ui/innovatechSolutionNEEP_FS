@@ -31,7 +31,7 @@ public class ProjectsService {
                 });
     }
 
-    // Crear no usa fallback: si falla, el llamador necesita saberlo.
+    /** Crear no usa fallback: si falla, el llamador necesita saberlo. */
     public ProjectSummary create(CreateProjectRequest req) {
         return client.create(req);
     }

@@ -16,7 +16,7 @@ public class ProjectsClient {
     private final RestClient http;
 
     public ProjectsClient(@LoadBalanced RestClient.Builder builder) {
-        // baseUrl con el service id de Eureka, no el hostname Docker
+        /* baseUrl con el service id de Eureka, no el hostname Docker */
         this.http = builder.baseUrl("http://ms-projects").build();
     }
 

@@ -51,7 +51,7 @@ public class ProjectService {
     public Optional<ProjectDto> patch(Long id, UpdateProjectRequest req) {
         return repo.findById(id).map(p -> {
             if (req.status() != null) p.setStatus(req.status());
-            // ownerId puede llegar vacio para "limpiar"; solo lo ignoro si es null
+            /* ownerId puede llegar vacio para "limpiar"; solo lo ignoro si es null */
             if (req.ownerId() != null) {
                 p.setOwnerId(req.ownerId().isBlank() ? null : req.ownerId());
             }

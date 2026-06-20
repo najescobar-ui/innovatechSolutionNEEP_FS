@@ -9,10 +9,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-// Saca authorities del JWT desde realm_access.roles (formato Keycloak).
-// Si cambiamos de IdP (Auth0, Cognito, etc), este es el unico archivo
-// que hay que tocar — el resto del codigo trabaja con GrantedAuthority
-// estandar.
+/**
+ * Saca authorities del JWT desde realm_access.roles (formato Keycloak).
+ * Si cambiamos de IdP (Auth0, Cognito, etc), este es el unico archivo
+ * que hay que tocar — el resto del codigo trabaja con GrantedAuthority
+ * estandar.
+ */
 public class JwtAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
     @Override

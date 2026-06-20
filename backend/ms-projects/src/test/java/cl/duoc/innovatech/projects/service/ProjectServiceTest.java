@@ -93,7 +93,7 @@ class ProjectServiceTest {
 
         assertThat(dtoOpt).isPresent();
         assertThat(dtoOpt.get().status()).isEqualTo(ProjectStatus.IN_PROGRESS);
-        assertThat(dtoOpt.get().ownerId()).isEqualTo("user-1"); // no cambio
+        assertThat(dtoOpt.get().ownerId()).isEqualTo("user-1"); /* no cambio */
     }
 
     @Test
@@ -107,7 +107,7 @@ class ProjectServiceTest {
 
         assertThat(dtoOpt).isPresent();
         assertThat(dtoOpt.get().ownerId()).isNull();
-        assertThat(dtoOpt.get().status()).isEqualTo(ProjectStatus.PLANNING); // no cambio
+        assertThat(dtoOpt.get().status()).isEqualTo(ProjectStatus.PLANNING); /* no cambio */
     }
 
     @Test

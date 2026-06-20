@@ -22,7 +22,7 @@ import java.util.List;
 @RequestMapping("/analytics")
 public class AnalyticsController {
 
-    // Ventana maxima permitida para consultas con rango (segun requerimiento UX).
+    /** Ventana maxima permitida para consultas con rango (segun requerimiento UX). */
     private static final long MAX_RANGE_DAYS = 30;
 
     private final KpiService kpis;
@@ -54,7 +54,7 @@ public class AnalyticsController {
             if (dias > MAX_RANGE_DAYS) {
                 return ResponseEntity.badRequest().build();
             }
-            // to inclusivo: tomamos hasta el final del dia
+            /* to inclusivo: tomamos hasta el final del dia */
             var inicio = from.atStartOfDay(ZoneOffset.UTC).toInstant();
             var fin = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
             serie = snapshots.between(inicio, fin);

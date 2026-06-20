@@ -30,11 +30,11 @@ class KpiServiceTest {
     void calculate_cuentaActivosYAtrasados() {
         var hoy = LocalDate.now();
         when(projects.list()).thenReturn(List.of(
-                new ProjectView(1L, "A", "IN_PROGRESS", hoy.plusDays(10)),  // activo
-                new ProjectView(2L, "B", "PLANNING",    hoy.plusDays(30)),  // activo
-                new ProjectView(3L, "C", "IN_PROGRESS", hoy.minusDays(5)),  // activo Y atrasado
-                new ProjectView(4L, "D", "COMPLETED",   hoy.minusDays(20)), // ni activo ni atrasado
-                new ProjectView(5L, "E", "CANCELLED",   hoy.minusDays(10))  // ni activo ni atrasado
+                new ProjectView(1L, "A", "IN_PROGRESS", hoy.plusDays(10)),  /* activo */
+                new ProjectView(2L, "B", "PLANNING",    hoy.plusDays(30)),  /* activo */
+                new ProjectView(3L, "C", "IN_PROGRESS", hoy.minusDays(5)),  /* activo Y atrasado */
+                new ProjectView(4L, "D", "COMPLETED",   hoy.minusDays(20)), /* ni activo ni atrasado */
+                new ProjectView(5L, "E", "CANCELLED",   hoy.minusDays(10))  /* ni activo ni atrasado */
         ));
         when(resources.list()).thenReturn(List.of());
 
@@ -57,15 +57,15 @@ class KpiServiceTest {
                 new ResourceView(1L, "DEV", 40, true),
                 new ResourceView(2L, "DEV", 30, true),
                 new ResourceView(3L, "QA",  20, true),
-                new ResourceView(4L, "DEV", 40, false) // inactivo: no cuenta
+                new ResourceView(4L, "DEV", 40, false) /* inactivo: no cuenta */
         ));
 
         var k = service.calculate();
 
         assertThat(k.totalActiveResources()).isEqualTo(3);
-        assertThat(k.totalWeeklyCapacityHours()).isEqualTo(90); // 40 + 30 + 20
+        assertThat(k.totalWeeklyCapacityHours()).isEqualTo(90); /* 40 + 30 + 20 */
         assertThat(k.avgHoursPerResource()).isEqualTo(30.0);
-        // utilizacion = promedio / 40 = 30 / 40 = 0.75
+        /* utilizacion = promedio / 40 = 30 / 40 = 0.75 */
         assertThat(k.utilizationPercentage()).isEqualTo(0.75);
         assertThat(k.resourcesByRole())
                 .containsEntry("DEV", 2L)

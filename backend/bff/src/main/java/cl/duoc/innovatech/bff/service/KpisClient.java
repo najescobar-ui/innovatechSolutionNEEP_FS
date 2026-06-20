@@ -7,8 +7,10 @@ import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
-// Passthrough: el shape lo decide ms-analytics. Si en algun momento hay
-// que sumar campos en el BFF, conviene tipar a un record dedicado.
+/**
+ * Passthrough: el shape lo decide ms-analytics. Si en algun momento hay
+ * que sumar campos en el BFF, conviene tipar a un record dedicado.
+ */
 @Component
 public class KpisClient {
 

@@ -18,11 +18,11 @@ public class KpiService {
 
     private static final Logger log = LoggerFactory.getLogger(KpiService.class);
 
-    // Estados que cuentan para "activos" y "atrasados".
+    /** Estados que cuentan para "activos" y "atrasados". */
     private static final Set<String> ACTIVE = Set.of("PLANNING", "IN_PROGRESS");
     private static final Set<String> FINISHED = Set.of("COMPLETED", "CANCELLED");
 
-    // Tope teorico para calcular utilizacion: 40h/semana es la jornada completa.
+    /** Tope teorico para calcular utilizacion: 40h/semana es la jornada completa. */
     private static final double FULL_WEEK_HOURS = 40.0;
 
     private final ProjectsClient projects;
@@ -61,9 +61,11 @@ public class KpiService {
         int capacity = activeResources.stream().mapToInt(ResourceView::weeklyHours).sum();
         double avg = totalActive == 0 ? 0.0 : (double) capacity / totalActive;
 
-        // Utilizacion proxy: promedio de horas comprometidas vs jornada full (40h).
-        // Cuando exista una tabla de asignaciones reales se reemplaza por la formula
-        // "horas asignadas / capacidad total".
+        /*
+         * Utilizacion proxy: promedio de horas comprometidas vs jornada full (40h).
+         * Cuando exista una tabla de asignaciones reales se reemplaza por la formula
+         * "horas asignadas / capacidad total".
+         */
         double utilization = totalActive == 0 ? 0.0 : Math.min(1.0, avg / FULL_WEEK_HOURS);
 
         Map<String, Long> byRole = activeResources.stream()

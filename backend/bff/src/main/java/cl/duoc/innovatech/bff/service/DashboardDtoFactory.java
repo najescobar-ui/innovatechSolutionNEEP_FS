@@ -12,11 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-// Antes era hardcoded. Ahora deriva valores de las fuentes reales:
-//   - utilizacion / proyectos activos / atrasados: vienen de ms-analytics via KpisService
-//   - listas de proyectos en curso / hitos: se calculan desde ProjectsService
-// Si un upstream cae, el circuit breaker devuelve "datos no disponibles" y los
-// numeros caen a 0 (mejor mostrar cero que un valor erroneo).
+/**
+ * Antes era hardcoded. Ahora deriva valores de las fuentes reales:
+ *   - utilizacion / proyectos activos / atrasados: vienen de ms-analytics via KpisService
+ *   - listas de proyectos en curso / hitos: se calculan desde ProjectsService
+ * Si un upstream cae, el circuit breaker devuelve "datos no disponibles" y los
+ * numeros caen a 0 (mejor mostrar cero que un valor erroneo).
+ */
 @Component
 public class DashboardDtoFactory {
 
@@ -49,7 +51,7 @@ public class DashboardDtoFactory {
                 .count();
         int atRisk = intOf(kpi, "delayedProjects");
 
-        // proximos 3 proyectos con fechaFin en el futuro, ordenados ascendente
+        /* proximos 3 proyectos con fechaFin en el futuro, ordenados ascendente */
         var hoy = LocalDate.now();
         var milestones = projects.stream()
                 .filter(p -> p.plannedEndDate() != null && !p.plannedEndDate().isBefore(hoy))
@@ -63,8 +65,10 @@ public class DashboardDtoFactory {
     }
 
     private DashboardDto.DevDashboard devDashboard(List<ProjectSummary> projects) {
-        // No hay tabla de tareas/asignaciones aun, asi que esos campos quedan en 0
-        // y se hidratan cuando exista la entidad. "OngoingProjects" si se puede.
+        /*
+         * No hay tabla de tareas/asignaciones aun, asi que esos campos quedan en 0
+         * y se hidratan cuando exista la entidad. "OngoingProjects" si se puede.
+         */
         var ongoing = projects.stream()
                 .filter(p -> "IN_PROGRESS".equals(p.status()))
                 .map(ProjectSummary::name)

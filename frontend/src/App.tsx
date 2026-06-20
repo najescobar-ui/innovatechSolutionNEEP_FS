@@ -17,7 +17,7 @@ function Loading() {
 function AppRoutes() {
   const { ready, authenticated } = useAuth();
   if (!ready) return <Loading />;
-  if (!authenticated) return <Loading />; // login-required ya redirigio, no deberia caer aca
+  if (!authenticated) return <Loading />; /* login-required ya redirigio, no deberia caer aca */
 
   return (
     <BrowserRouter>
