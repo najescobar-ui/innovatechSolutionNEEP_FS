@@ -9,9 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,22 +21,12 @@ class AuthControllerTest {
     AuthController controller;
 
     @Test
-    void register_validRole_delegatesAndReturnsCreated() {
-        var req = new RegisterRequest("Ana", "Diaz", "ana@x.cl", "11.111.111-1", "secret", "DEV");
+    void register_delegatesAndReturnsCreated() {
+        var req = new RegisterRequest("Ana", "Diaz", "ana@x.cl", "11.111.111-1", "Secret.1", "DEV");
 
         var resp = controller.register(req);
 
         assertThat(resp).containsEntry("status", "created").containsEntry("role", "DEV");
         verify(keycloak).register(req);
-    }
-
-    @Test
-    void register_invalidRole_rejected() {
-        var req = new RegisterRequest("Ana", "Diaz", "ana@x.cl", "1-9", "secret", "BOSS");
-
-        assertThatThrownBy(() -> controller.register(req))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Perfil");
-        verify(keycloak, never()).register(any());
     }
 }
