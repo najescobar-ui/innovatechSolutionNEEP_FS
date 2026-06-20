@@ -48,13 +48,13 @@ jobs:
             dockerfile: backend/eureka-server/Dockerfile
           - image: innovatech-ms-projects
             context: ./backend
-            dockerfile: backend/services/ms-projects/Dockerfile
+            dockerfile: backend/ms-projects/Dockerfile
           - image: innovatech-ms-resources
             context: ./backend
-            dockerfile: backend/services/ms-resources/Dockerfile
+            dockerfile: backend/ms-resources/Dockerfile
           - image: innovatech-ms-analytics
             context: ./backend
-            dockerfile: backend/services/ms-analytics/Dockerfile
+            dockerfile: backend/ms-analytics/Dockerfile
           - image: innovatech-bff
             context: ./backend
             dockerfile: backend/bff/Dockerfile
