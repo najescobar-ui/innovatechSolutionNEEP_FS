@@ -38,6 +38,8 @@ spec:
             exec: { command: ["pg_isready", "-U", "projects_user", "-d", "projects"] }
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -83,6 +85,8 @@ spec:
             exec: { command: ["pg_isready", "-U", "resources_user", "-d", "resources"] }
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -128,6 +132,8 @@ spec:
             exec: { command: ["pg_isready", "-U", "analytics_user", "-d", "analytics"] }
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -173,6 +179,8 @@ spec:
             exec: { command: ["pg_isready", "-U", "keycloak", "-d", "keycloak"] }
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
   volumeClaimTemplates:
     - metadata:
         name: data
