@@ -27,7 +27,7 @@ const initial: AuthCtx = {
 
 export const AuthContext = createContext<AuthCtx>(initial);
 
-const ROLES_VALIDOS = ["PM", "DEV", "DIR"];
+const VALID_ROLES = ["PM", "DEV", "DIR"];
 const TOKEN_KEY = "kc_token";
 const REFRESH_KEY = "kc_refresh";
 
@@ -57,7 +57,7 @@ function identityFrom(accessToken: string): Identity {
     fullName:
       [tp?.given_name, tp?.family_name].filter(Boolean).join(" ") ||
       (tp?.preferred_username ?? ""),
-    roles: realmRoles.filter((r) => ROLES_VALIDOS.includes(r)),
+    roles: realmRoles.filter((r) => VALID_ROLES.includes(r)),
     token: accessToken,
   };
 }

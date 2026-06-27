@@ -23,8 +23,8 @@ import java.util.Set;
 @Component
 public class DashboardDtoFactory {
 
-    private static final Set<String> ESTADOS_TERMINADOS = Set.of("COMPLETED", "CANCELLED");
-    private static final Set<String> TAREAS_PENDIENTES = Set.of("TODO", "IN_PROGRESS");
+    private static final Set<String> TERMINAL_STATUSES = Set.of("COMPLETED", "CANCELLED");
+    private static final Set<String> PENDING_TASK_STATUSES = Set.of("TODO", "IN_PROGRESS");
     private static final DateTimeFormatter F = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final KpisService kpisService;
@@ -53,7 +53,7 @@ public class DashboardDtoFactory {
 
     private DashboardDto.PMDashboard pmDashboard(Map<String, Object> kpi, List<ProjectSummary> projects) {
         int supervised = (int) projects.stream()
-                .filter(p -> !ESTADOS_TERMINADOS.contains(p.status()))
+                .filter(p -> !TERMINAL_STATUSES.contains(p.status()))
                 .count();
         int atRisk = intOf(kpi, "delayedTasks");
 
@@ -61,7 +61,7 @@ public class DashboardDtoFactory {
         var today = LocalDate.now();
         var milestones = projects.stream()
                 .filter(p -> p.plannedEndDate() != null && !p.plannedEndDate().isBefore(today))
-                .filter(p -> !ESTADOS_TERMINADOS.contains(p.status()))
+                .filter(p -> !TERMINAL_STATUSES.contains(p.status()))
                 .sorted(Comparator.comparing(ProjectSummary::plannedEndDate))
                 .limit(3)
                 .map(p -> p.name() + " — " + F.format(p.plannedEndDate()))
@@ -88,7 +88,7 @@ public class DashboardDtoFactory {
                 List<TaskSummary> myTasks = tasksService.listForAssignee(resource.get().id());
                 assigned = myTasks.size();
                 pending = (int) myTasks.stream()
-                        .filter(t -> TAREAS_PENDIENTES.contains(t.status()))
+                        .filter(t -> PENDING_TASK_STATUSES.contains(t.status()))
                         .count();
             }
         }
@@ -103,13 +103,13 @@ public class DashboardDtoFactory {
         return new DashboardDto.DirDashboard("DIR", active, util, alerts);
     }
 
-    private static int intOf(Map<String, Object> kpi, String campo) {
-        var raw = kpi.get(campo);
+    private static int intOf(Map<String, Object> kpi, String key) {
+        var raw = kpi.get(key);
         return raw instanceof Number n ? n.intValue() : 0;
     }
 
-    private static double doubleOf(Map<String, Object> kpi, String campo) {
-        var raw = kpi.get(campo);
+    private static double doubleOf(Map<String, Object> kpi, String key) {
+        var raw = kpi.get(key);
         return raw instanceof Number n ? n.doubleValue() : 0.0;
     }
 }
