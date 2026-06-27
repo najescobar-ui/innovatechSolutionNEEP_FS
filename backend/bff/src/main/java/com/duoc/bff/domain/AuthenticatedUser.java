@@ -15,7 +15,7 @@ import java.util.Set;
  */
 public record AuthenticatedUser(UserRole role, String email) {
 
-    private static final Set<String> ROLES_VALIDOS = Set.of("PM", "DEV", "DIR");
+    private static final Set<String> VALID_ROLES = Set.of("PM", "DEV", "DIR");
 
     /**
      * Construye el usuario a partir del contexto de seguridad. El rol sale de las
@@ -27,7 +27,7 @@ public record AuthenticatedUser(UserRole role, String email) {
                 .map(GrantedAuthority::getAuthority)
                 .filter(a -> a.startsWith("ROLE_"))
                 .map(a -> a.substring(5))
-                .filter(ROLES_VALIDOS::contains)
+                .filter(VALID_ROLES::contains)
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.FORBIDDEN, "usuario sin rol de plataforma (PM/DEV/DIR)"));

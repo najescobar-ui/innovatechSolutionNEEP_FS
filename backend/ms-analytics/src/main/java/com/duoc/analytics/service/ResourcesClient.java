@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class ResourcesClient {
 
-    private static final ParameterizedTypeReference<List<ResourceView>> TIPO_LISTA =
+    private static final ParameterizedTypeReference<List<ResourceView>> RESOURCE_LIST_TYPE =
             new ParameterizedTypeReference<>() {};
 
     private final RestClient http;
@@ -26,7 +26,7 @@ public class ResourcesClient {
 
     public List<ResourceView> list() {
         return breakers.create("resources").run(
-                () -> http.get().uri("/resources").retrieve().body(TIPO_LISTA),
+                () -> http.get().uri("/resources").retrieve().body(RESOURCE_LIST_TYPE),
                 ex -> { throw new IllegalStateException("ms-resources: " + ex.getMessage(), ex); }
         );
     }
