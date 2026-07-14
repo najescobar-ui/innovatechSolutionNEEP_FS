@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Descriptor del arquetipo: define qué archivos se generan, cuáles se filtran
+  (sustitución de ${...}) y cuáles se ubican bajo el paquete del proyecto nuevo.
+  - filtered=true  -> Velocity sustituye ${groupId}, ${artifactId}, ${package}, ...
+  - packaged=true  -> el archivo se coloca dentro de la carpeta del paquete elegido
+-->
+<archetype-descriptor xmlns="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0 https://maven.apache.org/xsd/archetype-descriptor-1.1.0.xsd"
+                      name="innovatech-ms-archetype">
+
+    <fileSets>
+        <!-- Código fuente: se filtra y se ubica bajo el paquete del microservicio nuevo. -->
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.java</include>
+            </includes>
+        </fileSet>
+
+        <!-- Tests: idem. -->
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+            <directory>src/test/java</directory>
+            <includes>
+                <include>**/*.java</include>
+            </includes>
+        </fileSet>
+
+        <!-- Recursos (application.yml, migraciones Flyway): copiados tal cual, SIN filtrar,
+             para preservar los ${VAR:default} que Spring resuelve en runtime. -->
+        <fileSet filtered="false" encoding="UTF-8">
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*.yml</include>
+                <include>**/*.sql</include>
+            </includes>
+        </fileSet>
+
+        <!-- Dockerfile: se filtra para inyectar el artifactId del microservicio. -->
+        <fileSet filtered="true" encoding="UTF-8">
+            <directory></directory>
+            <includes>
+                <include>Dockerfile</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</archetype-descriptor>

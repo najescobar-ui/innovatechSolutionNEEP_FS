@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        ============================================================
+         Arquetipo Maven personalizado - Innovatech Solutions
+         Plantilla para generar microservicios nuevos con la misma
+         estructura y stack que ms-projects / ms-resources
+         (Spring Boot + JPA + Flyway + Eureka + Actuator + OpenAPI).
+
+         Uso:
+           1) instalar el POM padre:   cd backend && mvn -N install
+           2) instalar este arquetipo: cd backend/archetypes/innovatech-ms-archetype && mvn install
+           3) generar un microservicio:
+              mvn archetype:generate -B \
+                -DarchetypeGroupId=com.duoc \
+                -DarchetypeArtifactId=innovatech-ms-archetype \
+                -DarchetypeVersion=0.1.0-SNAPSHOT \
+                -DgroupId=com.duoc -DartifactId=ms-demo -Dpackage=com.duoc.demo
+         ============================================================
+    -->
+
+    <groupId>com.duoc</groupId>
+    <artifactId>innovatech-ms-archetype</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>maven-archetype</packaging>
+
+    <name>Innovatech Solutions :: MS Archetype</name>
+    <description>Custom Maven archetype that scaffolds an Innovatech microservice (Spring Boot + JPA + Flyway + Eureka).</description>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.archetype</groupId>
+                <artifactId>archetype-packaging</artifactId>
+                <version>3.2.1</version>
+            </extension>
+        </extensions>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-archetype-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
