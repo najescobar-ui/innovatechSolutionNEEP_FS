@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { nav } from "./nav";
 import { AuthProvider } from "./auth/AuthProvider";
 import { useAuth } from "./auth/useAuth";
 import { Layout } from "./components/Layout";
@@ -27,18 +28,18 @@ function AppRoutes() {
       <Routes>
         {!authenticated ? (
           <>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path={nav.login} element={<Login />} />
+            <Route path={nav.register} element={<Register />} />
+            <Route path="*" element={<Navigate to={nav.login} replace />} />
           </>
         ) : (
           <Route element={<Layout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path={nav.dashboard} element={<Dashboard />} />
+            <Route path={nav.projects} element={<Projects />} />
+            <Route path={nav.resources} element={<Resources />} />
+            <Route path={nav.tasks} element={<Tasks />} />
+            <Route path={nav.analytics} element={<Analytics />} />
+            <Route path="*" element={<Navigate to={nav.dashboard} replace />} />
           </Route>
         )}
       </Routes>

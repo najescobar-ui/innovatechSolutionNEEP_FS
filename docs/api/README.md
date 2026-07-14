@@ -14,12 +14,20 @@ Especificación de la API y colección de pruebas (DSY1106).
 1. Levantar el stack: `kubectl apply -k backend/k8s/overlays/local` (o `docker compose up -d`).
 2. Importar `InnovatechSolutions.postman_collection.json` en Postman.
 3. Ejecutar **Autenticación → Login (obtener token)**: hace el *password grant* contra
-   Keycloak y guarda el `access_token` en la variable `token` de la colección.
-4. Ejecutar el resto de las peticiones: el JWT se inyecta solo en la cabecera `Authorization`.
+   Keycloak con el usuario seed `pm/pm123` y guarda el `access_token` en la variable `token`.
+4. Ejecutar el resto: el JWT se inyecta solo como Bearer (auth a nivel de colección). Al
+   **crear** proyecto/recurso/tarea se capturan sus IDs en `project_id`, `resource_id` y
+   `task_id`, así que los PATCH/DELETE funcionan sin editar nada.
+
+Usuarios seed (de `backend/docker/keycloak/realm-export.json`):
+- `pm` / `pm123` (rol PM) · `dev` / `dev123` (rol DEV) · `dir` / `dir123` (rol DIR)
+
+Cambiá `username`/`password` en las variables de la colección para probar otro rol.
 
 Variables de la colección:
 - `base_url` = `http://localhost:9000/api` (API Gateway)
 - `keycloak` = `http://localhost:8080`
+- `realm` = `innovatech` · `client_id` = `innovatech-frontend`
 
 ## Swagger UI (en tiempo de ejecución)
 Cada servicio con SpringDoc expone, además, la documentación interactiva:

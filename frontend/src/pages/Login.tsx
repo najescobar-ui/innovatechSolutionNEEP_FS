@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/Button";
 import { Field, TextInput } from "../components/Modal";
 import { useAuth } from "../auth/useAuth";
+import { nav } from "../nav";
 
 export function Login() {
   const { login } = useAuth();
@@ -22,7 +23,7 @@ export function Login() {
     setErr(null);
     try {
       await login(username.trim(), password);
-      navigate("/", { replace: true });
+      navigate(nav.dashboard, { replace: true });
     } catch {
       setErr("Credenciales inválidas.");
       setSending(false);
@@ -45,7 +46,7 @@ export function Login() {
       </form>
       <p className="mt-4 text-[12px] text-fg-muted text-center">
         ¿No tienes cuenta?{" "}
-        <Link to="/register" className="text-accent hover:underline">Regístrate</Link>
+        <Link to={nav.register} className="text-accent hover:underline">Regístrate</Link>
       </p>
     </AuthShell>
   );
