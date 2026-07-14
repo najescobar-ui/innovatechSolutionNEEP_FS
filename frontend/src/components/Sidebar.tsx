@@ -10,14 +10,15 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
+import { nav } from "../nav";
 
 /** Analytics queda restringida a DIR; el resto es visible para todos los roles. */
 const NAV = [
-  { to: "/",          label: "Dashboard", Icon: LayoutDashboard },
-  { to: "/projects",  label: "Projects",  Icon: FolderKanban },
-  { to: "/resources", label: "Resources", Icon: Users },
-  { to: "/tasks",     label: "Tasks",     Icon: ListTodo },
-  { to: "/analytics", label: "Analytics", Icon: BarChart3, roles: ["DIR"] },
+  { to: nav.dashboard, label: "Dashboard", Icon: LayoutDashboard },
+  { to: nav.projects,  label: "Projects",  Icon: FolderKanban },
+  { to: nav.resources, label: "Resources", Icon: Users },
+  { to: nav.tasks,     label: "Tasks",     Icon: ListTodo },
+  { to: nav.analytics, label: "Analytics", Icon: BarChart3, roles: ["DIR"] },
 ];
 
 function initials(name: string) {
@@ -51,7 +52,7 @@ export function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            end={to === "/"}
+            end={to === nav.dashboard}
             className={({ isActive }) =>
               `relative flex items-center gap-2.5 rounded px-3 py-1.5 text-[13px] transition-colors ${
                 isActive
