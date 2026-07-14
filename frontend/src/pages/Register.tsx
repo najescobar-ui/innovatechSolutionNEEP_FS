@@ -5,6 +5,7 @@ import { Field, SelectInput, TextInput } from "../components/Modal";
 import { useAuth } from "../auth/useAuth";
 import { api } from "../api/client";
 import { AuthShell } from "./Login";
+import { nav } from "../nav";
 
 const ROLES = [
   { v: "DEV", l: "Desarrollador (DEV)" },
@@ -64,7 +65,7 @@ export function Register() {
         role,
       });
       await login(email.trim(), password);
-      navigate("/", { replace: true });
+      navigate(nav.dashboard, { replace: true });
     } catch (e: any) {
       // Muestra el motivo real que devuelve el backend (validacion o Keycloak).
       setErr(e?.response?.data?.message ?? "No se pudo crear la cuenta. Revisa los datos e intenta de nuevo.");
@@ -109,7 +110,7 @@ export function Register() {
       </form>
       <p className="mt-4 text-[12px] text-fg-muted text-center">
         ¿Ya tienes cuenta?{" "}
-        <Link to="/login" className="text-accent hover:underline">Inicia sesión</Link>
+        <Link to={nav.login} className="text-accent hover:underline">Inicia sesión</Link>
       </p>
     </AuthShell>
   );

@@ -4,6 +4,46 @@
 # (docker compose build).
 set -euo pipefail
 
+# --- Cluster selection -----------------------------------------------------
+# To avoid deploying by mistake into whatever cluster the shell currently
+# points at (e.g. a remote one via $KUBECONFIG), this script always works
+# against an explicit kubeconfig. The path is resolved in this order:
+#   1) first argument:           ./deploy.sh /path/to/kubeconfig
+#   2) DEPLOY_KUBECONFIG env var
+#   3) interactive prompt (only when running in a terminal)
+#   4) default ~/.kube/config (Docker Desktop)
+KUBECONFIG_PATH="${1:-${DEPLOY_KUBECONFIG:-}}"
+if [[ -z "$KUBECONFIG_PATH" ]]; then
+  if [[ -t 0 ]]; then
+    read -r -p "kubeconfig path [${HOME}/.kube/config]: " KUBECONFIG_PATH
+  fi
+  KUBECONFIG_PATH="${KUBECONFIG_PATH:-$HOME/.kube/config}"
+fi
+
+if [[ ! -f "$KUBECONFIG_PATH" ]]; then
+  echo "ABORTING: kubeconfig '$KUBECONFIG_PATH' does not exist." >&2
+  echo "Usage: $0 [path-to-kubeconfig]   (or export DEPLOY_KUBECONFIG=...)" >&2
+  exit 1
+fi
+
+# Pin every kubectl call to THIS kubeconfig; ignores any $KUBECONFIG or active
+# context inherited from the shell session.
+export KUBECONFIG="$KUBECONFIG_PATH"
+
+# Context guard: only ever deploy into the local Docker Desktop cluster.
+# Override with DEPLOY_CONTEXT if your local context has a different name.
+EXPECTED_CTX="${DEPLOY_CONTEXT:-docker-desktop}"
+CURRENT_CTX="$(kubectl config current-context 2>/dev/null || true)"
+if [[ "$CURRENT_CTX" != "$EXPECTED_CTX" ]]; then
+  echo "ABORTING: active context is '$CURRENT_CTX', expected '$EXPECTED_CTX'." >&2
+  echo "  kubeconfig: $KUBECONFIG_PATH" >&2
+  echo "  If your local context is named differently: DEPLOY_CONTEXT=<name> $0 ..." >&2
+  echo "  Or switch it: KUBECONFIG='$KUBECONFIG_PATH' kubectl config use-context $EXPECTED_CTX" >&2
+  exit 1
+fi
+echo ">> kubeconfig: $KUBECONFIG_PATH | context: $CURRENT_CTX"
+# ---------------------------------------------------------------------------
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REALM="$ROOT/backend/docker/keycloak/realm-export.json"
 NODE="desktop-control-plane"   # nodo del cluster kind de Docker Desktop
