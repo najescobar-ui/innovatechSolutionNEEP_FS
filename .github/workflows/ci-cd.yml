@@ -39,10 +39,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # Sonar usa el historial de git para el analisis
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4
@@ -54,6 +58,17 @@ jobs:
       - name: Tests + gate de cobertura (mvn verify)
         working-directory: backend
         run: mvn -B verify
+
+      # Corre solo si el repo tiene configurado el secret SONAR_TOKEN y las
+      # variables SONAR_ORGANIZATION / SONAR_PROJECT_KEY. Sin ellos, se salta.
+      - name: Analisis SonarCloud
+        if: ${{ env.SONAR_TOKEN != '' }}
+        working-directory: backend
+        run: >
+          mvn -B sonar:sonar
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+          -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
 
       - name: Publicar reporte de cobertura JaCoCo
         if: always()
